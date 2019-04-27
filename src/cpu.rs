@@ -4,10 +4,10 @@ use super::register::{Flag, Register};
 
 //  0   1   2   3   4   5   6   7   8   9   a   b   c   d   e   f
 const OP_CYCLES: [u32; 256] = [
-    04, 10, 07, 05, 05, 05, 00, 00, 04, 00, 00, 00, 05, 05, 00, 00, // 0
-    04, 10, 07, 05, 05, 05, 00, 00, 04, 00, 00, 00, 05, 05, 00, 00, // 1
-    04, 10, 16, 05, 05, 05, 00, 00, 04, 00, 00, 00, 05, 05, 00, 00, // 2
-    04, 10, 13, 05, 10, 10, 00, 00, 04, 00, 00, 00, 05, 05, 00, 00, // 3
+    04, 10, 07, 05, 05, 05, 07, 04, 04, 10, 07, 05, 05, 05, 07, 04, // 0
+    04, 10, 07, 05, 05, 05, 07, 04, 04, 10, 07, 05, 05, 05, 07, 04, // 1
+    04, 10, 16, 05, 05, 05, 07, 04, 04, 10, 16, 05, 05, 05, 07, 04, // 2
+    04, 10, 13, 05, 10, 10, 10, 04, 04, 10, 13, 05, 05, 05, 07, 04, // 3
     00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // 4
     00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // 5
     00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // 6
@@ -61,6 +61,50 @@ impl Cpu {
         r
     }
 
+    // Rotate A left. Old bit 7 to Carry flag.
+    fn alu_rlc(&mut self, a: u8) -> u8 {
+        let c = bit::get(a, 7);
+        let r = (a << 1) | u8::from(c);
+        self.reg.set_flag(Flag::C, c);
+        r
+    }
+
+    // Rotate A left through Carry flag.
+    fn alu_ral(&mut self, a: u8) -> u8 {
+        let c = bit::get(a, 7);
+        let r = (a << 1) | u8::from(self.reg.get_flag(Flag::C));
+        self.reg.set_flag(Flag::C, c);
+        r
+    }
+
+    // Decimal adjust register A. This instruction adjusts register A so that the correct representation of Binary
+    // Coded Decimal (BCD) is obtained.
+    fn alu_daa(&mut self) {
+        if ((self.reg.a & 0x0f) > 9) || self.reg.get_flag(Flag::A) {
+            self.reg.a += 0x06;
+            self.reg.set_flag(Flag::A, true);
+        } else {
+            self.reg.set_flag(Flag::A, false);
+        }
+        if (self.reg.a > 0x9f) || self.reg.get_flag(Flag::C) {
+            self.reg.a += 0x60;
+            self.reg.set_flag(Flag::C, true);
+        } else {
+            self.reg.set_flag(Flag::C, false);
+        }
+        self.reg.set_flag(Flag::S, bit::get(self.reg.a, 7));
+        self.reg.set_flag(Flag::Z, self.reg.a == 0x00);
+    }
+
+    // Add n to HL
+    // n = BC,DE,HL,SP
+    fn alu_dad(&mut self, n: u16) {
+        let a = self.reg.get_hl();
+        let r = a.wrapping_add(n);
+        self.reg.set_flag(Flag::C, a > 0xffff - n);
+        self.reg.set_hl(r);
+    }
+
     pub fn next(&mut self, mem: &mut Memory) -> u32 {
         let opcode = self.imm_db(mem);
         match opcode {
@@ -76,15 +120,15 @@ impl Cpu {
             }
             0x04 => self.reg.b = self.alu_inr(self.reg.b),
             0x05 => self.reg.b = self.alu_dcr(self.reg.b),
-            0x06 => unimplemented!(),
-            0x07 => unimplemented!(),
+            0x06 => self.reg.b = self.imm_db(mem),
+            0x07 => self.reg.a = self.alu_rlc(self.reg.a),
             0x08 => {}
-            0x09 => unimplemented!(),
+            0x09 => self.alu_dad(self.reg.get_bc()),
             0x0a => unimplemented!(),
             0x0b => unimplemented!(),
             0x0c => self.reg.c = self.alu_inr(self.reg.c),
             0x0d => self.reg.c = self.alu_dcr(self.reg.c),
-            0x0e => unimplemented!(),
+            0x0e => self.reg.c = self.imm_db(mem),
             0x0f => unimplemented!(),
             0x10 => {}
             0x11 => {
@@ -98,15 +142,15 @@ impl Cpu {
             }
             0x14 => self.reg.d = self.alu_inr(self.reg.d),
             0x15 => self.reg.d = self.alu_dcr(self.reg.d),
-            0x16 => unimplemented!(),
-            0x17 => unimplemented!(),
+            0x16 => self.reg.d = self.imm_db(mem),
+            0x17 => self.reg.a = self.alu_ral(self.reg.a),
             0x18 => {}
-            0x19 => unimplemented!(),
+            0x19 => self.alu_dad(self.reg.get_de()),
             0x1a => unimplemented!(),
             0x1b => unimplemented!(),
             0x1c => self.reg.e = self.alu_inr(self.reg.e),
             0x1d => self.reg.e = self.alu_dcr(self.reg.e),
-            0x1e => unimplemented!(),
+            0x1e => self.reg.e = self.imm_db(mem),
             0x1f => unimplemented!(),
             0x20 => {}
             0x21 => {
@@ -123,15 +167,15 @@ impl Cpu {
             }
             0x24 => self.reg.h = self.alu_inr(self.reg.h),
             0x25 => self.reg.h = self.alu_dcr(self.reg.h),
-            0x26 => unimplemented!(),
-            0x27 => unimplemented!(),
+            0x26 => self.reg.h = self.imm_db(mem),
+            0x27 => self.alu_daa(),
             0x28 => {}
-            0x29 => unimplemented!(),
+            0x29 => self.alu_dad(self.reg.get_hl()),
             0x2a => unimplemented!(),
             0x2b => unimplemented!(),
             0x2c => self.reg.l = self.alu_inr(self.reg.l),
             0x2d => self.reg.l = self.alu_dcr(self.reg.l),
-            0x2e => unimplemented!(),
+            0x2e => self.reg.l = self.imm_db(mem),
             0x2f => unimplemented!(),
             0x30 => {}
             0x31 => {
@@ -156,15 +200,19 @@ impl Cpu {
                 let b = mem.get(a);
                 mem.set(a, self.alu_dcr(b));
             }
-            0x36 => unimplemented!(),
-            0x37 => unimplemented!(),
+            0x36 => {
+                let a = self.reg.get_hl();
+                let b = self.imm_db(mem);
+                mem.set(a, b);
+            }
+            0x37 => self.reg.set_flag(Flag::C, true),
             0x38 => {}
-            0x39 => unimplemented!(),
+            0x39 => self.alu_dad(self.reg.sp),
             0x3a => unimplemented!(),
             0x3b => unimplemented!(),
             0x3c => self.reg.a = self.alu_inr(self.reg.a),
             0x3d => self.reg.a = self.alu_dcr(self.reg.a),
-            0x3e => unimplemented!(),
+            0x3e => self.reg.a = self.imm_db(mem),
             0x3f => unimplemented!(),
             0x40 => unimplemented!(),
             0x41 => unimplemented!(),
