@@ -1,12 +1,13 @@
+use super::bit;
 use super::memory::Memory;
-use super::register::Register;
+use super::register::{Flag, Register};
 
 //  0   1   2   3   4   5   6   7   8   9   a   b   c   d   e   f
 const OP_CYCLES: [u32; 256] = [
-    04, 10, 07, 05, 00, 00, 00, 00, 04, 00, 00, 00, 00, 00, 00, 00, // 0
-    04, 10, 07, 05, 00, 00, 00, 00, 04, 00, 00, 00, 00, 00, 00, 00, // 1
-    04, 10, 16, 05, 00, 00, 00, 00, 04, 00, 00, 00, 00, 00, 00, 00, // 2
-    04, 10, 13, 05, 00, 00, 00, 00, 04, 00, 00, 00, 00, 00, 00, 00, // 3
+    04, 10, 07, 05, 05, 05, 00, 00, 04, 00, 00, 00, 05, 05, 00, 00, // 0
+    04, 10, 07, 05, 05, 05, 00, 00, 04, 00, 00, 00, 05, 05, 00, 00, // 1
+    04, 10, 16, 05, 05, 05, 00, 00, 04, 00, 00, 00, 05, 05, 00, 00, // 2
+    04, 10, 13, 05, 10, 10, 00, 00, 04, 00, 00, 00, 05, 05, 00, 00, // 3
     00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // 4
     00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // 5
     00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // 6
@@ -38,6 +39,28 @@ impl Cpu {
         v
     }
 
+    // Increment register n.
+    // n = A,B,C,D,E,H,L,(HL)
+    fn alu_inr(&mut self, a: u8) -> u8 {
+        let r = a.wrapping_add(1);
+        self.reg.set_flag(Flag::S, bit::get(r, 7));
+        self.reg.set_flag(Flag::Z, r == 0x00);
+        self.reg.set_flag(Flag::A, (a & 0x0f) + 0x01 > 0x0f);
+        self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
+        r
+    }
+
+    // Decrement register n.
+    // n = A,B,C,D,E,H,L,(HL)
+    fn alu_dcr(&mut self, a: u8) -> u8 {
+        let r = a.wrapping_sub(1);
+        self.reg.set_flag(Flag::S, bit::get(r, 7));
+        self.reg.set_flag(Flag::Z, r == 0x00);
+        self.reg.set_flag(Flag::A, a.trailing_zeros() >= 4);
+        self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
+        r
+    }
+
     pub fn next(&mut self, mem: &mut Memory) -> u32 {
         let opcode = self.imm_db(mem);
         match opcode {
@@ -48,19 +71,19 @@ impl Cpu {
             }
             0x02 => mem.set(self.reg.get_bc(), self.reg.a),
             0x03 => {
-                let v = self.reg.get_bc().wrapping_add(1);
-                self.reg.set_bc(v);
+                let a = self.reg.get_bc().wrapping_add(1);
+                self.reg.set_bc(a);
             }
-            0x04 => unimplemented!(),
-            0x05 => unimplemented!(),
+            0x04 => self.reg.b = self.alu_inr(self.reg.b),
+            0x05 => self.reg.b = self.alu_dcr(self.reg.b),
             0x06 => unimplemented!(),
             0x07 => unimplemented!(),
             0x08 => {}
             0x09 => unimplemented!(),
             0x0a => unimplemented!(),
             0x0b => unimplemented!(),
-            0x0c => unimplemented!(),
-            0x0d => unimplemented!(),
+            0x0c => self.reg.c = self.alu_inr(self.reg.c),
+            0x0d => self.reg.c = self.alu_dcr(self.reg.c),
             0x0e => unimplemented!(),
             0x0f => unimplemented!(),
             0x10 => {}
@@ -70,19 +93,19 @@ impl Cpu {
             }
             0x12 => mem.set(self.reg.get_de(), self.reg.a),
             0x13 => {
-                let v = self.reg.get_de().wrapping_add(1);
-                self.reg.set_de(v);
+                let a = self.reg.get_de().wrapping_add(1);
+                self.reg.set_de(a);
             }
-            0x14 => unimplemented!(),
-            0x15 => unimplemented!(),
+            0x14 => self.reg.d = self.alu_inr(self.reg.d),
+            0x15 => self.reg.d = self.alu_dcr(self.reg.d),
             0x16 => unimplemented!(),
             0x17 => unimplemented!(),
             0x18 => {}
             0x19 => unimplemented!(),
             0x1a => unimplemented!(),
             0x1b => unimplemented!(),
-            0x1c => unimplemented!(),
-            0x1d => unimplemented!(),
+            0x1c => self.reg.e = self.alu_inr(self.reg.e),
+            0x1d => self.reg.e = self.alu_dcr(self.reg.e),
             0x1e => unimplemented!(),
             0x1f => unimplemented!(),
             0x20 => {}
@@ -98,16 +121,16 @@ impl Cpu {
                 let v = self.reg.get_hl().wrapping_add(1);
                 self.reg.set_hl(v);
             }
-            0x24 => unimplemented!(),
-            0x25 => unimplemented!(),
+            0x24 => self.reg.h = self.alu_inr(self.reg.h),
+            0x25 => self.reg.h = self.alu_dcr(self.reg.h),
             0x26 => unimplemented!(),
             0x27 => unimplemented!(),
             0x28 => {}
             0x29 => unimplemented!(),
             0x2a => unimplemented!(),
             0x2b => unimplemented!(),
-            0x2c => unimplemented!(),
-            0x2d => unimplemented!(),
+            0x2c => self.reg.l = self.alu_inr(self.reg.l),
+            0x2d => self.reg.l = self.alu_dcr(self.reg.l),
             0x2e => unimplemented!(),
             0x2f => unimplemented!(),
             0x30 => {}
@@ -120,19 +143,27 @@ impl Cpu {
                 mem.set(a, self.reg.a);
             }
             0x33 => {
-                let v = self.reg.sp.wrapping_add(1);
-                self.reg.sp = v;
+                let a = self.reg.sp.wrapping_add(1);
+                self.reg.sp = a;
             }
-            0x34 => unimplemented!(),
-            0x35 => unimplemented!(),
+            0x34 => {
+                let a = self.reg.get_hl();
+                let b = mem.get(a);
+                mem.set(a, self.alu_inr(b));
+            }
+            0x35 => {
+                let a = self.reg.get_hl();
+                let b = mem.get(a);
+                mem.set(a, self.alu_dcr(b));
+            }
             0x36 => unimplemented!(),
             0x37 => unimplemented!(),
             0x38 => {}
             0x39 => unimplemented!(),
             0x3a => unimplemented!(),
             0x3b => unimplemented!(),
-            0x3c => unimplemented!(),
-            0x3d => unimplemented!(),
+            0x3c => self.reg.a = self.alu_inr(self.reg.a),
+            0x3d => self.reg.a = self.alu_dcr(self.reg.a),
             0x3e => unimplemented!(),
             0x3f => unimplemented!(),
             0x40 => unimplemented!(),
