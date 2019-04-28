@@ -124,7 +124,7 @@ impl Cpu {
             0x07 => self.reg.a = self.alu_rlc(self.reg.a),
             0x08 => {}
             0x09 => self.alu_dad(self.reg.get_bc()),
-            0x0a => unimplemented!(),
+            0x0a => self.reg.a = mem.get(self.reg.get_bc()),
             0x0b => unimplemented!(),
             0x0c => self.reg.c = self.alu_inr(self.reg.c),
             0x0d => self.reg.c = self.alu_dcr(self.reg.c),
@@ -146,7 +146,7 @@ impl Cpu {
             0x17 => self.reg.a = self.alu_ral(self.reg.a),
             0x18 => {}
             0x19 => self.alu_dad(self.reg.get_de()),
-            0x1a => unimplemented!(),
+            0x1a => self.reg.a = mem.get(self.reg.get_de()),
             0x1b => unimplemented!(),
             0x1c => self.reg.e = self.alu_inr(self.reg.e),
             0x1d => self.reg.e = self.alu_dcr(self.reg.e),
@@ -171,7 +171,11 @@ impl Cpu {
             0x27 => self.alu_daa(),
             0x28 => {}
             0x29 => self.alu_dad(self.reg.get_hl()),
-            0x2a => unimplemented!(),
+            0x2a => {
+                let a = self.imm_dw(mem);
+                let b = mem.get_word(a);
+                self.reg.set_hl(b);
+            }
             0x2b => unimplemented!(),
             0x2c => self.reg.l = self.alu_inr(self.reg.l),
             0x2d => self.reg.l = self.alu_dcr(self.reg.l),
@@ -208,7 +212,11 @@ impl Cpu {
             0x37 => self.reg.set_flag(Flag::C, true),
             0x38 => {}
             0x39 => self.alu_dad(self.reg.sp),
-            0x3a => unimplemented!(),
+            0x3a => {
+                let a = self.imm_dw(mem);
+                let b = mem.get(a);
+                self.reg.a = b;
+            }
             0x3b => unimplemented!(),
             0x3c => self.reg.a = self.alu_inr(self.reg.a),
             0x3d => self.reg.a = self.alu_dcr(self.reg.a),
