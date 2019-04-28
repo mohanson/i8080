@@ -8,11 +8,11 @@ const OP_CYCLES: [u32; 256] = [
     04, 10, 07, 05, 05, 05, 07, 04, 04, 10, 07, 05, 05, 05, 07, 04, // 1
     04, 10, 16, 05, 05, 05, 07, 04, 04, 10, 16, 05, 05, 05, 07, 04, // 2
     04, 10, 13, 05, 10, 10, 10, 04, 04, 10, 13, 05, 05, 05, 07, 04, // 3
-    00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // 4
-    00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // 5
-    00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // 6
-    00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // 7
-    00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // 8
+    05, 05, 05, 05, 05, 05, 07, 05, 05, 05, 05, 05, 05, 05, 07, 05, // 4
+    05, 05, 05, 05, 05, 05, 07, 05, 05, 05, 05, 05, 05, 05, 07, 05, // 5
+    05, 05, 05, 05, 05, 05, 07, 05, 05, 05, 05, 05, 05, 05, 07, 05, // 6
+    07, 07, 07, 07, 07, 07, 07, 07, 05, 05, 05, 05, 05, 05, 07, 05, // 7
+    04, 04, 04, 04, 04, 04, 07, 04, 04, 04, 04, 04, 04, 04, 07, 04, // 8
     00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // 9
     00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // a
     00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // b
@@ -24,9 +24,17 @@ const OP_CYCLES: [u32; 256] = [
 
 pub struct Cpu {
     reg: Register,
+    halted: bool,
 }
 
 impl Cpu {
+    pub fn power_up() -> Self {
+        Self {
+            reg: Register::power_up(),
+            halted: false,
+        }
+    }
+
     fn imm_db(&mut self, mem: &mut Memory) -> u8 {
         let v = mem.get(self.reg.pc);
         self.reg.pc += 1;
@@ -123,6 +131,34 @@ impl Cpu {
         };
         self.reg.set_flag(Flag::C, c);
         r
+    }
+
+    // Add n to A.
+    // n = A,B,C,D,E,H,L,(HL),#
+    fn alu_add(&mut self, n: u8) {
+        let a = self.reg.a;
+        let r = a.wrapping_add(n);
+        self.reg.set_flag(Flag::S, bit::get(r, 7));
+        self.reg.set_flag(Flag::Z, r == 0x00);
+        self.reg.set_flag(Flag::A, (a & 0x0f) + (n & 0x0f) > 0x0f);
+        self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
+        self.reg.set_flag(Flag::C, u16::from(a) + u16::from(n) > 0xff);
+        self.reg.a = r;
+    }
+
+    // Add n + Carry flag to A.
+    // n = A,B,C,D,E,H,L,(HL),#
+    fn alu_adc(&mut self, n: u8) {
+        let a = self.reg.a;
+        let c = u8::from(self.reg.get_flag(Flag::C));
+        let r = a.wrapping_add(n).wrapping_add(c);
+        self.reg.set_flag(Flag::S, bit::get(r, 7));
+        self.reg.set_flag(Flag::Z, r == 0x00);
+        self.reg.set_flag(Flag::A, (a & 0x0f) + (n & 0x0f) + (c & 0x0f) > 0x0f);
+        self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
+        self.reg
+            .set_flag(Flag::C, u16::from(a) + u16::from(n) + u16::from(c) > 0xff);
+        self.reg.a = r;
     }
 
     pub fn next(&mut self, mem: &mut Memory) -> u32 {
@@ -254,86 +290,86 @@ impl Cpu {
             0x3d => self.reg.a = self.alu_dcr(self.reg.a),
             0x3e => self.reg.a = self.imm_db(mem),
             0x3f => self.reg.set_flag(Flag::C, !self.reg.get_flag(Flag::C)),
-            0x40 => unimplemented!(),
-            0x41 => unimplemented!(),
-            0x42 => unimplemented!(),
-            0x43 => unimplemented!(),
-            0x44 => unimplemented!(),
-            0x45 => unimplemented!(),
-            0x46 => unimplemented!(),
-            0x47 => unimplemented!(),
-            0x48 => unimplemented!(),
-            0x49 => unimplemented!(),
-            0x4a => unimplemented!(),
-            0x4b => unimplemented!(),
-            0x4c => unimplemented!(),
-            0x4d => unimplemented!(),
-            0x4e => unimplemented!(),
-            0x4f => unimplemented!(),
-            0x50 => unimplemented!(),
-            0x51 => unimplemented!(),
-            0x52 => unimplemented!(),
-            0x53 => unimplemented!(),
-            0x54 => unimplemented!(),
-            0x55 => unimplemented!(),
-            0x56 => unimplemented!(),
-            0x57 => unimplemented!(),
-            0x58 => unimplemented!(),
-            0x59 => unimplemented!(),
-            0x5a => unimplemented!(),
-            0x5b => unimplemented!(),
-            0x5c => unimplemented!(),
-            0x5d => unimplemented!(),
-            0x5e => unimplemented!(),
-            0x5f => unimplemented!(),
-            0x60 => unimplemented!(),
-            0x61 => unimplemented!(),
-            0x62 => unimplemented!(),
-            0x63 => unimplemented!(),
-            0x64 => unimplemented!(),
-            0x65 => unimplemented!(),
-            0x66 => unimplemented!(),
-            0x67 => unimplemented!(),
-            0x68 => unimplemented!(),
-            0x69 => unimplemented!(),
-            0x6a => unimplemented!(),
-            0x6b => unimplemented!(),
-            0x6c => unimplemented!(),
-            0x6d => unimplemented!(),
-            0x6e => unimplemented!(),
-            0x6f => unimplemented!(),
-            0x70 => unimplemented!(),
-            0x71 => unimplemented!(),
-            0x72 => unimplemented!(),
-            0x73 => unimplemented!(),
-            0x74 => unimplemented!(),
-            0x75 => unimplemented!(),
-            0x76 => unimplemented!(),
-            0x77 => unimplemented!(),
-            0x78 => unimplemented!(),
-            0x79 => unimplemented!(),
-            0x7a => unimplemented!(),
-            0x7b => unimplemented!(),
-            0x7c => unimplemented!(),
-            0x7d => unimplemented!(),
-            0x7e => unimplemented!(),
-            0x7f => unimplemented!(),
-            0x80 => unimplemented!(),
-            0x81 => unimplemented!(),
-            0x82 => unimplemented!(),
-            0x83 => unimplemented!(),
-            0x84 => unimplemented!(),
-            0x85 => unimplemented!(),
-            0x86 => unimplemented!(),
-            0x87 => unimplemented!(),
-            0x88 => unimplemented!(),
-            0x89 => unimplemented!(),
-            0x8a => unimplemented!(),
-            0x8b => unimplemented!(),
-            0x8c => unimplemented!(),
-            0x8d => unimplemented!(),
-            0x8e => unimplemented!(),
-            0x8f => unimplemented!(),
+            0x40 => {}
+            0x41 => self.reg.b = self.reg.c,
+            0x42 => self.reg.b = self.reg.d,
+            0x43 => self.reg.b = self.reg.e,
+            0x44 => self.reg.b = self.reg.h,
+            0x45 => self.reg.b = self.reg.l,
+            0x46 => self.reg.b = mem.get(self.reg.get_hl()),
+            0x47 => self.reg.b = self.reg.a,
+            0x48 => self.reg.c = self.reg.b,
+            0x49 => {}
+            0x4a => self.reg.c = self.reg.d,
+            0x4b => self.reg.c = self.reg.e,
+            0x4c => self.reg.c = self.reg.h,
+            0x4d => self.reg.c = self.reg.l,
+            0x4e => self.reg.c = mem.get(self.reg.get_hl()),
+            0x4f => self.reg.c = self.reg.a,
+            0x50 => self.reg.d = self.reg.b,
+            0x51 => self.reg.d = self.reg.c,
+            0x52 => {}
+            0x53 => self.reg.d = self.reg.e,
+            0x54 => self.reg.d = self.reg.h,
+            0x55 => self.reg.d = self.reg.l,
+            0x56 => self.reg.d = mem.get(self.reg.get_hl()),
+            0x57 => self.reg.d = self.reg.a,
+            0x58 => self.reg.e = self.reg.b,
+            0x59 => self.reg.e = self.reg.c,
+            0x5a => self.reg.e = self.reg.d,
+            0x5b => {}
+            0x5c => self.reg.e = self.reg.h,
+            0x5d => self.reg.e = self.reg.l,
+            0x5e => self.reg.e = mem.get(self.reg.get_hl()),
+            0x5f => self.reg.e = self.reg.a,
+            0x60 => self.reg.h = self.reg.b,
+            0x61 => self.reg.h = self.reg.c,
+            0x62 => self.reg.h = self.reg.d,
+            0x63 => self.reg.h = self.reg.e,
+            0x64 => {}
+            0x65 => self.reg.h = self.reg.l,
+            0x66 => self.reg.h = mem.get(self.reg.get_hl()),
+            0x67 => self.reg.h = self.reg.a,
+            0x68 => self.reg.l = self.reg.b,
+            0x69 => self.reg.l = self.reg.c,
+            0x6a => self.reg.l = self.reg.d,
+            0x6b => self.reg.l = self.reg.e,
+            0x6c => self.reg.l = self.reg.h,
+            0x6d => {}
+            0x6e => self.reg.l = mem.get(self.reg.get_hl()),
+            0x6f => self.reg.l = self.reg.a,
+            0x70 => mem.set(self.reg.get_hl(), self.reg.b),
+            0x71 => mem.set(self.reg.get_hl(), self.reg.c),
+            0x72 => mem.set(self.reg.get_hl(), self.reg.d),
+            0x73 => mem.set(self.reg.get_hl(), self.reg.e),
+            0x74 => mem.set(self.reg.get_hl(), self.reg.h),
+            0x75 => mem.set(self.reg.get_hl(), self.reg.l),
+            0x76 => self.halted = true,
+            0x77 => mem.set(self.reg.get_hl(), self.reg.a),
+            0x78 => self.reg.a = self.reg.b,
+            0x79 => self.reg.a = self.reg.c,
+            0x7a => self.reg.a = self.reg.d,
+            0x7b => self.reg.a = self.reg.e,
+            0x7c => self.reg.a = self.reg.h,
+            0x7d => self.reg.a = self.reg.l,
+            0x7e => self.reg.a = mem.get(self.reg.get_hl()),
+            0x7f => {}
+            0x80 => self.alu_add(self.reg.b),
+            0x81 => self.alu_add(self.reg.c),
+            0x82 => self.alu_add(self.reg.d),
+            0x83 => self.alu_add(self.reg.e),
+            0x84 => self.alu_add(self.reg.h),
+            0x85 => self.alu_add(self.reg.l),
+            0x86 => self.alu_add(mem.get(self.reg.get_hl())),
+            0x87 => self.alu_add(self.reg.a),
+            0x88 => self.alu_adc(self.reg.b),
+            0x89 => self.alu_adc(self.reg.c),
+            0x8a => self.alu_adc(self.reg.d),
+            0x8b => self.alu_adc(self.reg.e),
+            0x8c => self.alu_adc(self.reg.h),
+            0x8d => self.alu_adc(self.reg.l),
+            0x8e => self.alu_adc(mem.get(self.reg.get_hl())),
+            0x8f => self.alu_adc(self.reg.a),
             0x90 => unimplemented!(),
             0x91 => unimplemented!(),
             0x92 => unimplemented!(),
