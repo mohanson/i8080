@@ -188,6 +188,30 @@ impl Cpu {
         self.reg.a = r;
     }
 
+    // Logically AND n with A, result in A.
+    // n = A,B,C,D,E,H,L,(HL),#
+    fn alu_ana(&mut self, n: u8) {
+        let r = self.reg.a & n;
+        self.reg.set_flag(Flag::S, bit::get(r, 7));
+        self.reg.set_flag(Flag::Z, r == 0x00);
+        self.reg.set_flag(Flag::A, false);
+        self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
+        self.reg.set_flag(Flag::C, false);
+        self.reg.a = r;
+    }
+
+    // Logical exclusive OR n with register A, result in A.
+    // n = A,B,C,D,E,H,L,(HL),#
+    fn alu_xra(&mut self, n: u8) {
+        let r = self.reg.a ^ n;
+        self.reg.set_flag(Flag::S, bit::get(r, 7));
+        self.reg.set_flag(Flag::Z, r == 0x00);
+        self.reg.set_flag(Flag::A, false);
+        self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
+        self.reg.set_flag(Flag::C, false);
+        self.reg.a = r;
+    }
+
     pub fn next(&mut self, mem: &mut Memory) -> u32 {
         let opcode = self.imm_db(mem);
         match opcode {
@@ -413,22 +437,22 @@ impl Cpu {
             0x9d => self.alu_sbb(self.reg.l),
             0x9e => self.alu_sbb(mem.get(self.reg.get_hl())),
             0x9f => self.alu_sbb(self.reg.a),
-            0xa0 => unimplemented!(),
-            0xa1 => unimplemented!(),
-            0xa2 => unimplemented!(),
-            0xa3 => unimplemented!(),
-            0xa4 => unimplemented!(),
-            0xa5 => unimplemented!(),
-            0xa6 => unimplemented!(),
-            0xa7 => unimplemented!(),
-            0xa8 => unimplemented!(),
-            0xa9 => unimplemented!(),
-            0xaa => unimplemented!(),
-            0xab => unimplemented!(),
-            0xac => unimplemented!(),
-            0xad => unimplemented!(),
-            0xae => unimplemented!(),
-            0xaf => unimplemented!(),
+            0xa0 => self.alu_ana(self.reg.b),
+            0xa1 => self.alu_ana(self.reg.c),
+            0xa2 => self.alu_ana(self.reg.d),
+            0xa3 => self.alu_ana(self.reg.e),
+            0xa4 => self.alu_ana(self.reg.h),
+            0xa5 => self.alu_ana(self.reg.l),
+            0xa6 => self.alu_ana(mem.get(self.reg.get_hl())),
+            0xa7 => self.alu_ana(self.reg.a),
+            0xa8 => self.alu_xra(self.reg.b),
+            0xa9 => self.alu_xra(self.reg.c),
+            0xaa => self.alu_xra(self.reg.d),
+            0xab => self.alu_xra(self.reg.e),
+            0xac => self.alu_xra(self.reg.h),
+            0xad => self.alu_xra(self.reg.l),
+            0xae => self.alu_xra(mem.get(self.reg.get_hl())),
+            0xaf => self.alu_xra(self.reg.a),
             0xb0 => unimplemented!(),
             0xb1 => unimplemented!(),
             0xb2 => unimplemented!(),
