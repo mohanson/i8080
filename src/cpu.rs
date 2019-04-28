@@ -41,38 +41,38 @@ impl Cpu {
 
     // Increment register n.
     // n = A,B,C,D,E,H,L,(HL)
-    fn alu_inr(&mut self, a: u8) -> u8 {
-        let r = a.wrapping_add(1);
+    fn alu_inr(&mut self, n: u8) -> u8 {
+        let r = n.wrapping_add(1);
         self.reg.set_flag(Flag::S, bit::get(r, 7));
         self.reg.set_flag(Flag::Z, r == 0x00);
-        self.reg.set_flag(Flag::A, (a & 0x0f) + 0x01 > 0x0f);
+        self.reg.set_flag(Flag::A, (n & 0x0f) + 0x01 > 0x0f);
         self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
         r
     }
 
     // Decrement register n.
     // n = A,B,C,D,E,H,L,(HL)
-    fn alu_dcr(&mut self, a: u8) -> u8 {
-        let r = a.wrapping_sub(1);
+    fn alu_dcr(&mut self, n: u8) -> u8 {
+        let r = n.wrapping_sub(1);
         self.reg.set_flag(Flag::S, bit::get(r, 7));
         self.reg.set_flag(Flag::Z, r == 0x00);
-        self.reg.set_flag(Flag::A, a.trailing_zeros() >= 4);
+        self.reg.set_flag(Flag::A, n.trailing_zeros() >= 4);
         self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
         r
     }
 
     // Rotate A left. Old bit 7 to Carry flag.
-    fn alu_rlc(&mut self, a: u8) -> u8 {
-        let c = bit::get(a, 7);
-        let r = (a << 1) | u8::from(c);
+    fn alu_rlc(&mut self, n: u8) -> u8 {
+        let c = bit::get(n, 7);
+        let r = (n << 1) | u8::from(c);
         self.reg.set_flag(Flag::C, c);
         r
     }
 
     // Rotate A left through Carry flag.
-    fn alu_ral(&mut self, a: u8) -> u8 {
-        let c = bit::get(a, 7);
-        let r = (a << 1) | u8::from(self.reg.get_flag(Flag::C));
+    fn alu_ral(&mut self, n: u8) -> u8 {
+        let c = bit::get(n, 7);
+        let r = (n << 1) | u8::from(self.reg.get_flag(Flag::C));
         self.reg.set_flag(Flag::C, c);
         r
     }
@@ -105,6 +105,26 @@ impl Cpu {
         self.reg.set_hl(r);
     }
 
+    // Rotate A right. Old bit 0 to Carry flag.
+    fn alu_rrc(&mut self, n: u8) -> u8 {
+        let c = bit::get(n, 0);
+        let r = if c { 0x80 | (n >> 1) } else { n >> 1 };
+        self.reg.set_flag(Flag::C, c);
+        r
+    }
+
+    // Rotate A right through Carry flag.
+    fn alu_rar(&mut self, n: u8) -> u8 {
+        let c = bit::get(n, 0);
+        let r = if self.reg.get_flag(Flag::C) {
+            0x80 | (n >> 1)
+        } else {
+            n >> 1
+        };
+        self.reg.set_flag(Flag::C, c);
+        r
+    }
+
     pub fn next(&mut self, mem: &mut Memory) -> u32 {
         let opcode = self.imm_db(mem);
         match opcode {
@@ -125,11 +145,14 @@ impl Cpu {
             0x08 => {}
             0x09 => self.alu_dad(self.reg.get_bc()),
             0x0a => self.reg.a = mem.get(self.reg.get_bc()),
-            0x0b => unimplemented!(),
+            0x0b => {
+                let a = self.reg.get_bc().wrapping_sub(1);
+                self.reg.set_bc(a);
+            }
             0x0c => self.reg.c = self.alu_inr(self.reg.c),
             0x0d => self.reg.c = self.alu_dcr(self.reg.c),
             0x0e => self.reg.c = self.imm_db(mem),
-            0x0f => unimplemented!(),
+            0x0f => self.reg.a = self.alu_rrc(self.reg.a),
             0x10 => {}
             0x11 => {
                 let a = self.imm_dw(mem);
@@ -147,11 +170,14 @@ impl Cpu {
             0x18 => {}
             0x19 => self.alu_dad(self.reg.get_de()),
             0x1a => self.reg.a = mem.get(self.reg.get_de()),
-            0x1b => unimplemented!(),
+            0x1b => {
+                let a = self.reg.get_de().wrapping_sub(1);
+                self.reg.set_de(a);
+            }
             0x1c => self.reg.e = self.alu_inr(self.reg.e),
             0x1d => self.reg.e = self.alu_dcr(self.reg.e),
             0x1e => self.reg.e = self.imm_db(mem),
-            0x1f => unimplemented!(),
+            0x1f => self.reg.a = self.alu_rar(self.reg.a),
             0x20 => {}
             0x21 => {
                 let a = self.imm_dw(mem);
@@ -176,11 +202,14 @@ impl Cpu {
                 let b = mem.get_word(a);
                 self.reg.set_hl(b);
             }
-            0x2b => unimplemented!(),
+            0x2b => {
+                let a = self.reg.get_hl().wrapping_sub(1);
+                self.reg.set_hl(a);
+            }
             0x2c => self.reg.l = self.alu_inr(self.reg.l),
             0x2d => self.reg.l = self.alu_dcr(self.reg.l),
             0x2e => self.reg.l = self.imm_db(mem),
-            0x2f => unimplemented!(),
+            0x2f => self.reg.a = !self.reg.a,
             0x30 => {}
             0x31 => {
                 let a = self.imm_dw(mem);
@@ -217,11 +246,14 @@ impl Cpu {
                 let b = mem.get(a);
                 self.reg.a = b;
             }
-            0x3b => unimplemented!(),
+            0x3b => {
+                let a = self.reg.sp.wrapping_sub(1);
+                self.reg.sp = a
+            }
             0x3c => self.reg.a = self.alu_inr(self.reg.a),
             0x3d => self.reg.a = self.alu_dcr(self.reg.a),
             0x3e => self.reg.a = self.imm_db(mem),
-            0x3f => unimplemented!(),
+            0x3f => self.reg.set_flag(Flag::C, !self.reg.get_flag(Flag::C)),
             0x40 => unimplemented!(),
             0x41 => unimplemented!(),
             0x42 => unimplemented!(),
