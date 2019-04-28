@@ -47,6 +47,17 @@ impl Cpu {
         v
     }
 
+    fn stack_add(&mut self, mem: &mut Memory, v: u16) {
+        self.reg.sp -= 2;
+        mem.set_word(self.reg.sp, v);
+    }
+
+    fn stack_pop(&mut self, mem: &mut Memory) -> u16 {
+        let r = mem.get_word(self.reg.sp);
+        self.reg.sp += 2;
+        r
+    }
+
     // Increment register n.
     // n = A,B,C,D,E,H,L,(HL)
     fn alu_inr(&mut self, n: u8) -> u8 {
@@ -234,6 +245,7 @@ impl Cpu {
 
     pub fn next(&mut self, mem: &mut Memory) -> u32 {
         let opcode = self.imm_db(mem);
+        let mut ecycle = 0;
         match opcode {
             0x00 => {}
             0x01 => {
@@ -489,15 +501,28 @@ impl Cpu {
             0xbd => self.alu_cmp(self.reg.l),
             0xbe => self.alu_cmp(mem.get(self.reg.get_hl())),
             0xbf => self.alu_cmp(self.reg.a),
-            0xc0 => unimplemented!(),
-            0xc1 => unimplemented!(),
+            0xc0 => {
+                if !self.reg.get_flag(Flag::Z) {
+                    ecycle = 6;
+                    self.reg.pc = self.stack_pop(mem);
+                }
+            }
+            0xc1 => {
+                let a = self.stack_pop(mem);
+                self.reg.set_bc(a);
+            }
             0xc2 => unimplemented!(),
             0xc3 => unimplemented!(),
             0xc4 => unimplemented!(),
             0xc5 => unimplemented!(),
             0xc6 => unimplemented!(),
             0xc7 => unimplemented!(),
-            0xc8 => unimplemented!(),
+            0xc8 => {
+                if self.reg.get_flag(Flag::Z) {
+                    ecycle = 6;
+                    self.reg.pc = self.stack_pop(mem);
+                }
+            }
             0xc9 => unimplemented!(),
             0xca => unimplemented!(),
             0xcb => unimplemented!(),
@@ -505,15 +530,28 @@ impl Cpu {
             0xcd => unimplemented!(),
             0xce => unimplemented!(),
             0xcf => unimplemented!(),
-            0xd0 => unimplemented!(),
-            0xd1 => unimplemented!(),
+            0xd0 => {
+                if !self.reg.get_flag(Flag::C) {
+                    ecycle = 6;
+                    self.reg.pc = self.stack_pop(mem);
+                }
+            }
+            0xd1 => {
+                let a = self.stack_pop(mem);
+                self.reg.set_de(a);
+            },
             0xd2 => unimplemented!(),
             0xd3 => unimplemented!(),
             0xd4 => unimplemented!(),
             0xd5 => unimplemented!(),
             0xd6 => unimplemented!(),
             0xd7 => unimplemented!(),
-            0xd8 => unimplemented!(),
+            0xd8 => {
+                if self.reg.get_flag(Flag::C) {
+                    ecycle = 6;
+                    self.reg.pc = self.stack_pop(mem);
+                }
+            }
             0xd9 => unimplemented!(),
             0xda => unimplemented!(),
             0xdb => unimplemented!(),
@@ -521,8 +559,16 @@ impl Cpu {
             0xdd => unimplemented!(),
             0xde => unimplemented!(),
             0xdf => unimplemented!(),
-            0xe0 => unimplemented!(),
-            0xe1 => unimplemented!(),
+            0xe0 => {
+                if !self.reg.get_flag(Flag::P) {
+                    ecycle = 6;
+                    self.reg.pc = self.stack_pop(mem);
+                }
+            }
+            0xe1 => {
+                let a = self.stack_pop(mem);
+                self.reg.set_hl(a);
+            }
             0xe2 => unimplemented!(),
             0xe3 => unimplemented!(),
             0xe4 => unimplemented!(),
@@ -537,8 +583,16 @@ impl Cpu {
             0xed => unimplemented!(),
             0xee => unimplemented!(),
             0xef => unimplemented!(),
-            0xf0 => unimplemented!(),
-            0xf1 => unimplemented!(),
+            0xf0 => {
+                if self.reg.get_flag(Flag::P) {
+                    ecycle = 6;
+                    self.reg.pc = self.stack_pop(mem);
+                }
+            }
+            0xf1 => {
+                let a = self.stack_pop(mem);
+                self.reg.set_af(a);
+            },
             0xf2 => unimplemented!(),
             0xf3 => unimplemented!(),
             0xf4 => unimplemented!(),
@@ -554,6 +608,6 @@ impl Cpu {
             0xfe => unimplemented!(),
             0xff => unimplemented!(),
         };
-        OP_CYCLES[opcode as usize]
+        OP_CYCLES[opcode as usize] + ecycle
     }
 }
