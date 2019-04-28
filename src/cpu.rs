@@ -13,9 +13,9 @@ const OP_CYCLES: [u32; 256] = [
     05, 05, 05, 05, 05, 05, 07, 05, 05, 05, 05, 05, 05, 05, 07, 05, // 6
     07, 07, 07, 07, 07, 07, 07, 07, 05, 05, 05, 05, 05, 05, 07, 05, // 7
     04, 04, 04, 04, 04, 04, 07, 04, 04, 04, 04, 04, 04, 04, 07, 04, // 8
-    00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // 9
-    00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // a
-    00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // b
+    04, 04, 04, 04, 04, 04, 07, 04, 04, 04, 04, 04, 04, 04, 07, 04, // 9
+    04, 04, 04, 04, 04, 04, 07, 04, 04, 04, 04, 04, 04, 04, 07, 04, // a
+    04, 04, 04, 04, 04, 04, 07, 04, 04, 04, 04, 04, 04, 04, 07, 04, // b
     00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // c
     00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // d
     00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // e
@@ -158,6 +158,33 @@ impl Cpu {
         self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
         self.reg
             .set_flag(Flag::C, u16::from(a) + u16::from(n) + u16::from(c) > 0xff);
+        self.reg.a = r;
+    }
+
+    // Subtract n from A.
+    // n = A,B,C,D,E,H,L,(HL),#
+    fn alu_sub(&mut self, n: u8) {
+        let a = self.reg.a;
+        let r = a.wrapping_sub(n);
+        self.reg.set_flag(Flag::S, bit::get(r, 7));
+        self.reg.set_flag(Flag::Z, r == 0x00);
+        self.reg.set_flag(Flag::A, (a & 0x0f) < (n & 0x0f));
+        self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
+        self.reg.set_flag(Flag::C, u16::from(a) < u16::from(n));
+        self.reg.a = r;
+    }
+
+    // Subtract n + Carry flag from A.
+    // n = A,B,C,D,E,H,L,(HL),#
+    fn alu_sbb(&mut self, n: u8) {
+        let a = self.reg.a;
+        let c = u8::from(self.reg.get_flag(Flag::C));
+        let r = a.wrapping_sub(n).wrapping_sub(c);
+        self.reg.set_flag(Flag::S, bit::get(r, 7));
+        self.reg.set_flag(Flag::Z, r == 0x00);
+        self.reg.set_flag(Flag::A, (a & 0x0f) < (n & 0x0f) + c);
+        self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
+        self.reg.set_flag(Flag::C, u16::from(a) < u16::from(n) + u16::from(c));
         self.reg.a = r;
     }
 
@@ -370,22 +397,22 @@ impl Cpu {
             0x8d => self.alu_adc(self.reg.l),
             0x8e => self.alu_adc(mem.get(self.reg.get_hl())),
             0x8f => self.alu_adc(self.reg.a),
-            0x90 => unimplemented!(),
-            0x91 => unimplemented!(),
-            0x92 => unimplemented!(),
-            0x93 => unimplemented!(),
-            0x94 => unimplemented!(),
-            0x95 => unimplemented!(),
-            0x96 => unimplemented!(),
-            0x97 => unimplemented!(),
-            0x98 => unimplemented!(),
-            0x99 => unimplemented!(),
-            0x9a => unimplemented!(),
-            0x9b => unimplemented!(),
-            0x9c => unimplemented!(),
-            0x9d => unimplemented!(),
-            0x9e => unimplemented!(),
-            0x9f => unimplemented!(),
+            0x90 => self.alu_sub(self.reg.b),
+            0x91 => self.alu_sub(self.reg.c),
+            0x92 => self.alu_sub(self.reg.d),
+            0x93 => self.alu_sub(self.reg.e),
+            0x94 => self.alu_sub(self.reg.h),
+            0x95 => self.alu_sub(self.reg.l),
+            0x96 => self.alu_sub(mem.get(self.reg.get_hl())),
+            0x97 => self.alu_sub(self.reg.a),
+            0x98 => self.alu_sbb(self.reg.b),
+            0x99 => self.alu_sbb(self.reg.c),
+            0x9a => self.alu_sbb(self.reg.d),
+            0x9b => self.alu_sbb(self.reg.e),
+            0x9c => self.alu_sbb(self.reg.h),
+            0x9d => self.alu_sbb(self.reg.l),
+            0x9e => self.alu_sbb(mem.get(self.reg.get_hl())),
+            0x9f => self.alu_sbb(self.reg.a),
             0xa0 => unimplemented!(),
             0xa1 => unimplemented!(),
             0xa2 => unimplemented!(),
