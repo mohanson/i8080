@@ -25,6 +25,7 @@ const OP_CYCLES: [u32; 256] = [
 pub struct Cpu {
     reg: Register,
     halted: bool,
+    ei: bool,
 }
 
 impl Cpu {
@@ -32,6 +33,7 @@ impl Cpu {
         Self {
             reg: Register::power_up(),
             halted: false,
+            ei: false,
         }
     }
 
@@ -553,7 +555,7 @@ impl Cpu {
                     self.reg.pc = a;
                 }
             }
-            0xcb => unimplemented!(),
+            0xcb => self.reg.pc = mem.get_word(self.reg.pc + 1),
             0xcc => {
                 let a = self.imm_dw(mem);
                 if self.reg.get_flag(Flag::Z) {
@@ -562,7 +564,10 @@ impl Cpu {
                     self.reg.pc = a;
                 }
             }
-            0xcd => unimplemented!(),
+            0xcd => {
+                self.stack_add(mem, self.reg.pc + 2);
+                self.reg.pc = mem.get_word(self.reg.pc);
+            }
             0xce => unimplemented!(),
             0xcf => {
                 self.stack_add(mem, self.reg.pc);
@@ -620,7 +625,9 @@ impl Cpu {
                     self.reg.pc = a;
                 }
             }
-            0xdb => unimplemented!(),
+            0xdb => {
+                println!("0xdb input");
+            }
             0xdc => {
                 let a = self.imm_dw(mem);
                 if self.reg.get_flag(Flag::C) {
@@ -629,7 +636,10 @@ impl Cpu {
                     self.reg.pc = a;
                 }
             }
-            0xdd => unimplemented!(),
+            0xdd => {
+                self.stack_add(mem, self.reg.pc + 2);
+                self.reg.pc = mem.get_word(self.reg.pc);
+            }
             0xde => unimplemented!(),
             0xdf => {
                 self.stack_add(mem, self.reg.pc);
@@ -663,7 +673,7 @@ impl Cpu {
                     self.reg.pc = self.stack_pop(mem);
                 }
             }
-            0xe9 => self.reg.pc = self.get_hl(),
+            0xe9 => self.reg.pc = self.reg.get_hl(),
             0xea => {
                 let a = self.imm_dw(mem);
                 if !self.reg.get_flag(Flag::P) {
@@ -671,9 +681,23 @@ impl Cpu {
                     self.reg.pc = a;
                 }
             }
-            0xeb => unimplemented!(),
-            0xec => unimplemented!(),
-            0xed => unimplemented!(),
+            0xeb => {
+                use std::mem;
+                mem::swap(&mut self.reg.h, &mut self.reg.d);
+                mem::swap(&mut self.reg.l, &mut self.reg.e);
+            },
+            0xec => {
+                let a = self.imm_dw(mem);
+                if self.reg.get_flag(Flag::P) {
+                    ecycle = 6;
+                    self.stack_add(mem, self.reg.pc);
+                    self.reg.pc = a;
+                }
+            }
+            0xed => {
+                self.stack_add(mem, self.reg.pc + 2);
+                self.reg.pc = mem.get_word(self.reg.pc);
+            }
             0xee => unimplemented!(),
             0xef => {
                 self.stack_add(mem, self.reg.pc);
@@ -713,7 +737,7 @@ impl Cpu {
                     self.reg.pc = self.stack_pop(mem);
                 }
             }
-            0xf9 => self.reg.sp = self.get_hl(),
+            0xf9 => self.reg.sp = self.reg.get_hl(),
             0xfa => {
                 let a = self.imm_dw(mem);
                 if self.reg.get_flag(Flag::S) {
@@ -721,9 +745,21 @@ impl Cpu {
                     self.reg.pc = a;
                 }
             }
-            0xfb => unimplemented!(),
-            0xfc => unimplemented!(),
-            0xfd => unimplemented!(),
+            0xfb => {
+                self.ei = true;
+            }
+            0xfc => {
+                let a = self.imm_dw(mem);
+                if self.reg.get_flag(Flag::S) {
+                    ecycle = 6;
+                    self.stack_add(mem, self.reg.pc);
+                    self.reg.pc = a;
+                }
+            }
+            0xfd => {
+                self.stack_add(mem, self.reg.pc + 2);
+                self.reg.pc = mem.get_word(self.reg.pc);
+            }
             0xfe => unimplemented!(),
             0xff => {
                 self.stack_add(mem, self.reg.pc);
