@@ -657,7 +657,12 @@ impl Cpu {
                 self.stack_add(mem, self.reg.pc);
                 self.reg.pc = 0x20;
             }
-            0xe8 => unimplemented!(),
+            0xe8 => {
+                if !self.reg.get_flag(Flag::P) {
+                    ecycle = 6;
+                    self.reg.pc = self.stack_pop(mem);
+                }
+            }
             0xe9 => unimplemented!(),
             0xea => unimplemented!(),
             0xeb => unimplemented!(),
@@ -696,7 +701,12 @@ impl Cpu {
                 self.stack_add(mem, self.reg.pc);
                 self.reg.pc = 0x30;
             }
-            0xf8 => unimplemented!(),
+            0xf8 => {
+                if self.reg.get_flag(Flag::S) {
+                    ecycle = 6;
+                    self.reg.pc = self.stack_pop(mem);
+                }
+            }
             0xf9 => unimplemented!(),
             0xfa => {
                 let a = self.imm_dw(mem);
