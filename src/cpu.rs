@@ -545,7 +545,7 @@ impl Cpu {
                     self.reg.pc = self.stack_pop(mem);
                 }
             }
-            0xc9 => unimplemented!(),
+            0xc9 => self.reg.pc = self.stack_pop(mem),
             0xca => {
                 let a = self.imm_dw(mem);
                 if self.reg.get_flag(Flag::Z) {
@@ -612,7 +612,7 @@ impl Cpu {
                     self.reg.pc = self.stack_pop(mem);
                 }
             }
-            0xd9 => unimplemented!(),
+            0xd9 => self.reg.pc = self.stack_pop(mem),
             0xda => {
                 let a = self.imm_dw(mem);
                 if self.reg.get_flag(Flag::C) {
@@ -663,8 +663,14 @@ impl Cpu {
                     self.reg.pc = self.stack_pop(mem);
                 }
             }
-            0xe9 => unimplemented!(),
-            0xea => unimplemented!(),
+            0xe9 => self.reg.pc = self.get_hl(),
+            0xea => {
+                let a = self.imm_dw(mem);
+                if !self.reg.get_flag(Flag::P) {
+                    ecycle = 6;
+                    self.reg.pc = a;
+                }
+            }
             0xeb => unimplemented!(),
             0xec => unimplemented!(),
             0xed => unimplemented!(),
@@ -707,7 +713,7 @@ impl Cpu {
                     self.reg.pc = self.stack_pop(mem);
                 }
             }
-            0xf9 => unimplemented!(),
+            0xf9 => self.reg.sp = self.get_hl(),
             0xfa => {
                 let a = self.imm_dw(mem);
                 if self.reg.get_flag(Flag::S) {
