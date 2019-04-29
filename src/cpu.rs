@@ -511,12 +511,34 @@ impl Cpu {
                 let a = self.stack_pop(mem);
                 self.reg.set_bc(a);
             }
-            0xc2 => unimplemented!(),
-            0xc3 => unimplemented!(),
-            0xc4 => unimplemented!(),
-            0xc5 => unimplemented!(),
-            0xc6 => unimplemented!(),
-            0xc7 => unimplemented!(),
+            0xc2 => {
+                let a = self.imm_dw(mem);
+                if !self.reg.get_flag(Flag::Z) {
+                    ecycle = 6;
+                    self.reg.pc = a;
+                }
+            }
+            0xc3 => {
+                let a = self.imm_dw(mem);
+                self.reg.pc = a;
+            }
+            0xc4 => {
+                let a = self.imm_dw(mem);
+                if !self.reg.get_flag(Flag::Z) {
+                    ecycle = 6;
+                    self.stack_add(mem, self.reg.pc);
+                    self.reg.pc = a;
+                }
+            },
+            0xc5 => self.stack_add(mem, self.reg.get_bc()),
+            0xc6 => {
+                let a = self.imm_db(mem);
+                self.alu_add(a);
+            }
+            0xc7 => {
+                self.stack_add(mem, self.reg.pc);
+                self.reg.pc = 0x00;
+            }
             0xc8 => {
                 if self.reg.get_flag(Flag::Z) {
                     ecycle = 6;
@@ -524,12 +546,28 @@ impl Cpu {
                 }
             }
             0xc9 => unimplemented!(),
-            0xca => unimplemented!(),
+            0xca => {
+                let a = self.imm_dw(mem);
+                if self.reg.get_flag(Flag::Z) {
+                    ecycle = 6;
+                    self.reg.pc = a;
+                }
+            }
             0xcb => unimplemented!(),
-            0xcc => unimplemented!(),
+            0xcc => {
+                let a = self.imm_dw(mem);
+                if self.reg.get_flag(Flag::Z) {
+                    ecycle = 6;
+                    self.stack_add(mem, self.reg.pc);
+                    self.reg.pc = a;
+                }
+            }
             0xcd => unimplemented!(),
             0xce => unimplemented!(),
-            0xcf => unimplemented!(),
+            0xcf => {
+                self.stack_add(mem, self.reg.pc);
+                self.reg.pc = 0x08;
+            }
             0xd0 => {
                 if !self.reg.get_flag(Flag::C) {
                     ecycle = 6;
@@ -540,12 +578,34 @@ impl Cpu {
                 let a = self.stack_pop(mem);
                 self.reg.set_de(a);
             },
-            0xd2 => unimplemented!(),
-            0xd3 => unimplemented!(),
-            0xd4 => unimplemented!(),
-            0xd5 => unimplemented!(),
-            0xd6 => unimplemented!(),
-            0xd7 => unimplemented!(),
+            0xd2 => {
+                let a = self.imm_dw(mem);
+                if !self.reg.get_flag(Flag::C) {
+                    ecycle = 6;
+                    self.reg.pc = a;
+                }
+            }
+            0xd3 => {
+                let a = self.imm_db(mem);
+                println!("out => port={} data={}", a, self.reg.a);
+            },
+            0xd4 => {
+                let a = self.imm_dw(mem);
+                if !self.reg.get_flag(Flag::C) {
+                    ecycle = 6;
+                    self.stack_add(mem, self.reg.pc);
+                    self.reg.pc = a;
+                }
+            }
+            0xd5 => self.stack_add(mem, self.reg.get_de()),
+            0xd6 => {
+                let a = self.imm_db(mem);
+                self.alu_sub(a);
+            }
+            0xd7 => {
+                self.stack_add(mem, self.reg.pc);
+                self.reg.pc = 0x10;
+            }
             0xd8 => {
                 if self.reg.get_flag(Flag::C) {
                     ecycle = 6;
@@ -553,12 +613,28 @@ impl Cpu {
                 }
             }
             0xd9 => unimplemented!(),
-            0xda => unimplemented!(),
+            0xda => {
+                let a = self.imm_dw(mem);
+                if self.reg.get_flag(Flag::C) {
+                    ecycle = 6;
+                    self.reg.pc = a;
+                }
+            }
             0xdb => unimplemented!(),
-            0xdc => unimplemented!(),
+            0xdc => {
+                let a = self.imm_dw(mem);
+                if self.reg.get_flag(Flag::C) {
+                    ecycle = 6;
+                    self.stack_add(mem, self.reg.pc);
+                    self.reg.pc = a;
+                }
+            }
             0xdd => unimplemented!(),
             0xde => unimplemented!(),
-            0xdf => unimplemented!(),
+            0xdf => {
+                self.stack_add(mem, self.reg.pc);
+                self.reg.pc = 0x18;
+            }
             0xe0 => {
                 if !self.reg.get_flag(Flag::P) {
                     ecycle = 6;
@@ -572,9 +648,15 @@ impl Cpu {
             0xe2 => unimplemented!(),
             0xe3 => unimplemented!(),
             0xe4 => unimplemented!(),
-            0xe5 => unimplemented!(),
-            0xe6 => unimplemented!(),
-            0xe7 => unimplemented!(),
+            0xe5 => self.stack_add(mem, self.reg.get_hl()),
+            0xe6 => {
+                let a = self.imm_db(mem);
+                self.alu_ana(a);
+            }
+            0xe7 => {
+                self.stack_add(mem, self.reg.pc);
+                self.reg.pc = 0x20;
+            }
             0xe8 => unimplemented!(),
             0xe9 => unimplemented!(),
             0xea => unimplemented!(),
@@ -582,7 +664,10 @@ impl Cpu {
             0xec => unimplemented!(),
             0xed => unimplemented!(),
             0xee => unimplemented!(),
-            0xef => unimplemented!(),
+            0xef => {
+                self.stack_add(mem, self.reg.pc);
+                self.reg.pc = 0x28;
+            }
             0xf0 => {
                 if self.reg.get_flag(Flag::P) {
                     ecycle = 6;
@@ -593,20 +678,41 @@ impl Cpu {
                 let a = self.stack_pop(mem);
                 self.reg.set_af(a);
             },
-            0xf2 => unimplemented!(),
+            0xf2 => {
+                let a = self.imm_dw(mem);
+                if !self.reg.get_flag(Flag::S) {
+                    ecycle = 6;
+                    self.reg.pc = a;
+                }
+            }
             0xf3 => unimplemented!(),
             0xf4 => unimplemented!(),
-            0xf5 => unimplemented!(),
-            0xf6 => unimplemented!(),
-            0xf7 => unimplemented!(),
+            0xf5 => self.stack_add(mem, self.reg.get_af()),
+            0xf6 => {
+                let a = self.imm_db(mem);
+                self.alu_ora(a);
+            }
+            0xf7 => {
+                self.stack_add(mem, self.reg.pc);
+                self.reg.pc = 0x30;
+            }
             0xf8 => unimplemented!(),
             0xf9 => unimplemented!(),
-            0xfa => unimplemented!(),
+            0xfa => {
+                let a = self.imm_dw(mem);
+                if self.reg.get_flag(Flag::S) {
+                    ecycle = 6;
+                    self.reg.pc = a;
+                }
+            }
             0xfb => unimplemented!(),
             0xfc => unimplemented!(),
             0xfd => unimplemented!(),
             0xfe => unimplemented!(),
-            0xff => unimplemented!(),
+            0xff => {
+                self.stack_add(mem, self.reg.pc);
+                self.reg.pc = 0x38;
+            }
         };
         OP_CYCLES[opcode as usize] + ecycle
     }
