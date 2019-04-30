@@ -568,7 +568,10 @@ impl Cpu {
                 self.stack_add(mem, self.reg.pc + 2);
                 self.reg.pc = mem.get_word(self.reg.pc);
             }
-            0xce => unimplemented!(),
+            0xce => {
+                let v = self.imm_db(mem);
+                self.alu_adc(v);
+            }
             0xcf => {
                 self.stack_add(mem, self.reg.pc);
                 self.reg.pc = 0x08;
@@ -640,7 +643,10 @@ impl Cpu {
                 self.stack_add(mem, self.reg.pc + 2);
                 self.reg.pc = mem.get_word(self.reg.pc);
             }
-            0xde => unimplemented!(),
+            0xde => {
+                let v = self.imm_db(mem);
+                self.alu_sbb(v);
+            }
             0xdf => {
                 self.stack_add(mem, self.reg.pc);
                 self.reg.pc = 0x18;
@@ -655,9 +661,26 @@ impl Cpu {
                 let a = self.stack_pop(mem);
                 self.reg.set_hl(a);
             }
-            0xe2 => unimplemented!(),
-            0xe3 => unimplemented!(),
-            0xe4 => unimplemented!(),
+            0xe2 => {
+                if !self.reg.get_flag(Flag::P) {
+                    ecycle = 6;
+                    self.reg.pc = self.stack_pop(mem);
+                }
+            },
+            0xe3 => {
+                let hl = self.reg.get_hl();
+                let new_hl = self.stack_pop(mem);
+                self.stack_add(mem, new_hl);
+                self.reg.set_hl(hl);
+            }
+            0xe4 => {
+                let a = self.imm_dw(mem);
+                if !self.reg.get_flag(Flag::P) {
+                    ecycle = 6;
+                    self.stack_add(mem, self.reg.pc);
+                    self.reg.pc = a;
+                }
+            }
             0xe5 => self.stack_add(mem, self.reg.get_hl()),
             0xe6 => {
                 let a = self.imm_db(mem);
@@ -698,7 +721,10 @@ impl Cpu {
                 self.stack_add(mem, self.reg.pc + 2);
                 self.reg.pc = mem.get_word(self.reg.pc);
             }
-            0xee => unimplemented!(),
+            0xee => {
+                let a = self.imm_db(mem);
+                self.alu_xra(a);
+            }
             0xef => {
                 self.stack_add(mem, self.reg.pc);
                 self.reg.pc = 0x28;
@@ -760,7 +786,10 @@ impl Cpu {
                 self.stack_add(mem, self.reg.pc + 2);
                 self.reg.pc = mem.get_word(self.reg.pc);
             }
-            0xfe => unimplemented!(),
+            0xfe => {
+                let a = self.imm_db(mem);
+                self.alu_cmp(a);
+            }
             0xff => {
                 self.stack_add(mem, self.reg.pc);
                 self.reg.pc = 0x38;
