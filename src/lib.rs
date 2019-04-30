@@ -1,3 +1,6 @@
-fn main() {
-    println!("Hello, world!");
-}
+mod bit;
+mod cpu;
+mod memory;
+mod register;
+
+pub use cpu::Cpu;
