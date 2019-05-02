@@ -127,16 +127,26 @@ impl Cpu {
     }
 
     fn alu_adc(&mut self, n: u8) {
-        let a = self.reg.a;
         let c = u8::from(self.reg.get_flag(Flag::C));
-        let r = a.wrapping_add(n).wrapping_add(c);
+        let n = n.wrapping_add(c);
+        self.alu_add(n);
+    }
+
+    fn alu_sub(&mut self, n: u8) {
+        let a = self.reg.a;
+        let r = a.wrapping_sub(n);
         self.reg.set_flag(Flag::S, bit::get(r, 7));
         self.reg.set_flag(Flag::Z, r == 0x00);
-        self.reg.set_flag(Flag::A, (a & 0x0f) + (n & 0x0f) + (c & 0x0f) > 0x0f);
+        self.reg.set_flag(Flag::A, (a & 0x0f) + (!n & 0x0f) + 1 > 0x0f);
         self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
-        self.reg
-            .set_flag(Flag::C, u16::from(a) + u16::from(n) + u16::from(c) > 0xff);
+        self.reg.set_flag(Flag::C, u16::from(a) < u16::from(n));
         self.reg.a = r;
+    }
+
+    fn alu_sbb(&mut self, n: u8) {
+        let c = u8::from(self.reg.get_flag(Flag::C));
+        let n = n.wrapping_add(c);
+        self.alu_sub(n)
     }
 
     fn alu_rlc(&mut self, n: u8) -> u8 {
@@ -176,29 +186,6 @@ impl Cpu {
         };
         self.reg.set_flag(Flag::C, c);
         r
-    }
-
-    fn alu_sub(&mut self, n: u8) {
-        let a = self.reg.a;
-        let r = a.wrapping_sub(n);
-        self.reg.set_flag(Flag::S, bit::get(r, 7));
-        self.reg.set_flag(Flag::Z, r == 0x00);
-        self.reg.set_flag(Flag::A, (a & 0x0f) < (n & 0x0f));
-        self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
-        self.reg.set_flag(Flag::C, u16::from(a) < u16::from(n));
-        self.reg.a = r;
-    }
-
-    fn alu_sbb(&mut self, n: u8) {
-        let a = self.reg.a;
-        let c = u8::from(self.reg.get_flag(Flag::C));
-        let r = a.wrapping_sub(n).wrapping_sub(c);
-        self.reg.set_flag(Flag::S, bit::get(r, 7));
-        self.reg.set_flag(Flag::Z, r == 0x00);
-        self.reg.set_flag(Flag::A, (a & 0x0f) < (n & 0x0f) + c);
-        self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
-        self.reg.set_flag(Flag::C, u16::from(a) < u16::from(n) + u16::from(c));
-        self.reg.a = r;
     }
 
     fn alu_ana(&mut self, n: u8) {
@@ -375,6 +362,26 @@ impl Cpu {
             0x8e => self.alu_adc(self.get_m()),
             0x8f => self.alu_adc(self.reg.a),
 
+            // SUB Subtract Register or Memory From Accumulator
+            0x90 => self.alu_sub(self.reg.b),
+            0x91 => self.alu_sub(self.reg.c),
+            0x92 => self.alu_sub(self.reg.d),
+            0x93 => self.alu_sub(self.reg.e),
+            0x94 => self.alu_sub(self.reg.h),
+            0x95 => self.alu_sub(self.reg.l),
+            0x96 => self.alu_sub(self.get_m()),
+            0x97 => self.alu_sub(self.reg.a),
+
+            // SBB Subtract Register or Memory From Accumulator With Borrow
+            0x98 => self.alu_sbb(self.reg.b),
+            0x99 => self.alu_sbb(self.reg.c),
+            0x9a => self.alu_sbb(self.reg.d),
+            0x9b => self.alu_sbb(self.reg.e),
+            0x9c => self.alu_sbb(self.reg.h),
+            0x9d => self.alu_sbb(self.reg.l),
+            0x9e => self.alu_sbb(self.get_m()),
+            0x9f => self.alu_sbb(self.reg.a),
+
             // 0x01 => {
             //     let a = self.imm_dw(mem);
             //     self.reg.set_bc(a);
@@ -469,22 +476,6 @@ impl Cpu {
             // }
             // 0x76 => self.halted = true,
             // 0x3e => self.reg.a = self.imm_ds(mem),
-            // 0x90 => self.alu_sub(self.reg.b),
-            // 0x91 => self.alu_sub(self.reg.c),
-            // 0x92 => self.alu_sub(self.reg.d),
-            // 0x93 => self.alu_sub(self.reg.e),
-            // 0x94 => self.alu_sub(self.reg.h),
-            // 0x95 => self.alu_sub(self.reg.l),
-            // 0x96 => self.alu_sub(mem.get(self.reg.get_hl())),
-            // 0x97 => self.alu_sub(self.reg.a),
-            // 0x98 => self.alu_sbb(self.reg.b),
-            // 0x99 => self.alu_sbb(self.reg.c),
-            // 0x9a => self.alu_sbb(self.reg.d),
-            // 0x9b => self.alu_sbb(self.reg.e),
-            // 0x9c => self.alu_sbb(self.reg.h),
-            // 0x9d => self.alu_sbb(self.reg.l),
-            // 0x9e => self.alu_sbb(mem.get(self.reg.get_hl())),
-            // 0x9f => self.alu_sbb(self.reg.a),
             // 0xa0 => self.alu_ana(self.reg.b),
             // 0xa1 => self.alu_ana(self.reg.c),
             // 0xa2 => self.alu_ana(self.reg.d),

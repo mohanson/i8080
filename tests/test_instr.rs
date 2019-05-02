@@ -140,3 +140,35 @@ fn test_adc_1() {
     assert_eq!(cpu.reg.get_flag(Flag::S), true);
     assert_eq!(cpu.reg.get_flag(Flag::A), true);
 }
+
+#[test]
+fn test_sub() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.a = 0x3e;
+    cpu.mem.set(0x0000, 0x97);
+    cpu.next();
+    assert_eq!(cpu.reg.a, 0x00);
+    assert_eq!(cpu.reg.get_flag(Flag::C), false);
+    assert_eq!(cpu.reg.get_flag(Flag::A), true);
+    assert_eq!(cpu.reg.get_flag(Flag::Z), true);
+    assert_eq!(cpu.reg.get_flag(Flag::P), true);
+    assert_eq!(cpu.reg.get_flag(Flag::S), false);
+}
+
+#[test]
+fn test_sbb() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.l = 0x02;
+    cpu.reg.a = 0x04;
+    cpu.reg.set_flag(Flag::C, true);
+    cpu.mem.set(0x0000, 0x9d);
+    cpu.next();
+    assert_eq!(cpu.reg.a, 0x01);
+    assert_eq!(cpu.reg.get_flag(Flag::Z), false);
+    assert_eq!(cpu.reg.get_flag(Flag::C), false);
+    assert_eq!(cpu.reg.get_flag(Flag::A), true);
+    assert_eq!(cpu.reg.get_flag(Flag::P), false);
+    assert_eq!(cpu.reg.get_flag(Flag::S), false);
+}
