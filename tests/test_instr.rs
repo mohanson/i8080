@@ -425,3 +425,15 @@ fn test_inx_2() {
     cpu.next();
     assert_eq!(cpu.reg.sp, 0x0000);
 }
+
+#[test]
+fn test_dcx() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.h = 0x98;
+    cpu.reg.l = 0x00;
+    cpu.mem.set(0x0000, 0x2b);
+    cpu.next();
+    assert_eq!(cpu.reg.h, 0x97);
+    assert_eq!(cpu.reg.l, 0xff);
+}
