@@ -23,8 +23,8 @@ const OP_CYCLES: [u32; 256] = [
 ];
 
 pub struct Cpu {
-    reg: Register,
-    mem: Box<Memory>,
+    pub reg: Register,
+    pub mem: Box<Memory>,
     halted: bool,
     ei: bool,
 }
@@ -96,18 +96,18 @@ impl Cpu {
         let mut r: u8 = self.reg.a;
         // If the least significant four bits of the accumulator represents a number greater than 9, or if the Auxiliary
         // Carry bit is equal to one, the accumulator is incremented by six. Otherwise, no incrementing occurs.
-        let b = ((self.reg.a & 0x0f) > 9) || self.reg.get_flag(Flag::A);
-        self.reg.set_flag(Flag::A, b);
-        if b {
+        if ((r & 0x0f) > 9) || self.reg.get_flag(Flag::A) {
             r = r.wrapping_add(0x06);
+            self.reg.set_flag(Flag::A, true);
+        } else {
+            self.reg.set_flag(Flag::A, false);
         }
         // If the most significant four bits of the accumulator now represent a number greater than 9, or if the normal
         // carry bit is equal to one, the most sign ificant four bits of the accumulator are incremented by six.
         // Otherwise, no incrementing occurs.
-        let b = (self.reg.a > 0x9f) || self.reg.get_flag(Flag::C);
-        self.reg.set_flag(Flag::C, b);
-        if b {
-            r = r.wrapping_add(0x60)
+        if (r > 0x9f) || self.reg.get_flag(Flag::C) {
+            r = r.wrapping_add(0x60);
+            self.reg.set_flag(Flag::C, true);
         }
         self.reg.set_flag(Flag::S, bit::get(r, 7));
         self.reg.set_flag(Flag::Z, r == 0x00);
