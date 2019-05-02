@@ -315,3 +315,33 @@ fn test_rar() {
     assert_eq!(cpu.reg.a, 0xb5);
     assert_eq!(cpu.reg.get_flag(Flag::C), false);
 }
+
+#[test]
+fn test_stack_push_0() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.d = 0x8f;
+    cpu.reg.e = 0x9d;
+    cpu.reg.sp = 0x3a2c;
+    cpu.mem.set(0x0000, 0xd5);
+    cpu.next();
+    assert_eq!(cpu.mem.get(0x3a2b), 0x8f);
+    assert_eq!(cpu.mem.get(0x3a2a), 0x9d);
+    assert_eq!(cpu.reg.sp, 0x3a2a);
+}
+
+#[test]
+fn test_stack_push_1() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.a = 0x1f;
+    cpu.reg.sp = 0x502a;
+    cpu.reg.set_flag(Flag::C, true);
+    cpu.reg.set_flag(Flag::Z, true);
+    cpu.reg.set_flag(Flag::P, true);
+    cpu.mem.set(0x0000, 0xf5);
+    cpu.next();
+    assert_eq!(cpu.mem.get(0x5029), 0x1f);
+    assert_eq!(cpu.mem.get(0x5028), 0x47);
+    assert_eq!(cpu.reg.sp, 0x5028);
+}

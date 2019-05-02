@@ -61,13 +61,13 @@ impl Cpu {
         self.mem.set(a, v)
     }
 
-    fn stack_add(&mut self, mem: &mut Memory, v: u16) {
+    fn stack_add(&mut self, v: u16) {
         self.reg.sp -= 2;
-        mem.set_word(self.reg.sp, v);
+        self.mem.set_word(self.reg.sp, v);
     }
 
-    fn stack_pop(&mut self, mem: &mut Memory) -> u16 {
-        let r = mem.get_word(self.reg.sp);
+    fn stack_pop(&mut self) -> u16 {
+        let r = self.mem.get_word(self.reg.sp);
         self.reg.sp += 2;
         r
     }
@@ -434,6 +434,12 @@ impl Cpu {
             // RAR Rotate Accumulator Right Through Carry
             0x1f => self.alu_rar(),
 
+            // PUSH Push Data Onto Stack
+            0xc5 => self.stack_add(self.reg.get_bc()),
+            0xd5 => self.stack_add(self.reg.get_de()),
+            0xe5 => self.stack_add(self.reg.get_hl()),
+            0xf5 => self.stack_add(self.reg.get_af()),
+
             // 0x01 => {
             //     let a = self.imm_dw(mem);
             //     self.reg.set_bc(a);
@@ -553,7 +559,6 @@ impl Cpu {
             //         self.reg.pc = a;
             //     }
             // }
-            // 0xc5 => self.stack_add(mem, self.reg.get_bc()),
             // 0xc6 => {
             //     let a = self.imm_ds(mem);
             //     self.alu_add(a);
@@ -626,7 +631,6 @@ impl Cpu {
             //         self.reg.pc = a;
             //     }
             // }
-            // 0xd5 => self.stack_add(mem, self.reg.get_de()),
             // 0xd6 => {
             //     let a = self.imm_ds(mem);
             //     self.alu_sub(a);
@@ -702,7 +706,6 @@ impl Cpu {
             //         self.reg.pc = a;
             //     }
             // }
-            // 0xe5 => self.stack_add(mem, self.reg.get_hl()),
             // 0xe6 => {
             //     let a = self.imm_ds(mem);
             //     self.alu_ana(a);
@@ -769,7 +772,6 @@ impl Cpu {
             // }
             // 0xf3 => unimplemented!(),
             // 0xf4 => unimplemented!(),
-            // 0xf5 => self.stack_add(mem, self.reg.get_af()),
             // 0xf6 => {
             //     let a = self.imm_ds(mem);
             //     self.alu_ora(a);
