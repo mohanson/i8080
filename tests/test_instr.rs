@@ -345,3 +345,35 @@ fn test_stack_push_1() {
     assert_eq!(cpu.mem.get(0x5028), 0x47);
     assert_eq!(cpu.reg.sp, 0x5028);
 }
+
+#[test]
+fn test_stack_pop_0() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.mem.set(0x1239, 0x3d);
+    cpu.mem.set(0x123a, 0x93);
+    cpu.reg.sp = 0x1239;
+    cpu.mem.set(0x0000, 0xe1);
+    cpu.next();
+    assert_eq!(cpu.reg.l, 0x3d);
+    assert_eq!(cpu.reg.h, 0x93);
+    assert_eq!(cpu.reg.sp, 0x123b);
+}
+
+#[test]
+fn test_stack_pop_1() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.mem.set(0x2c00, 0xc3);
+    cpu.mem.set(0x2c01, 0xff);
+    cpu.reg.sp = 0x2c00;
+    cpu.mem.set(0x0000, 0xf1);
+    cpu.next();
+    assert_eq!(cpu.reg.a, 0xff);
+    assert_eq!(cpu.reg.f, 0xc3);
+    // assert_eq!(cpu.reg.get_flag(Flag::S), true);
+    // assert_eq!(cpu.reg.get_flag(Flag::Z), true);
+    // assert_eq!(cpu.reg.get_flag(Flag::A), false);
+    // assert_eq!(cpu.reg.get_flag(Flag::P), false);
+    // assert_eq!(cpu.reg.get_flag(Flag::C), true);
+}

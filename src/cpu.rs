@@ -440,6 +440,24 @@ impl Cpu {
             0xe5 => self.stack_add(self.reg.get_hl()),
             0xf5 => self.stack_add(self.reg.get_af()),
 
+            // POP Pop Data Off Stack
+            0xc1 => {
+                let a = self.stack_pop();
+                self.reg.set_bc(a);
+            }
+            0xd1 => {
+                let a = self.stack_pop();
+                self.reg.set_de(a);
+            }
+            0xe1 => {
+                let a = self.stack_pop();
+                self.reg.set_hl(a);
+            }
+            0xf1 => {
+                let a = self.stack_pop();
+                self.reg.set_af(a);
+            }
+
             // 0x01 => {
             //     let a = self.imm_dw(mem);
             //     self.reg.set_bc(a);
@@ -536,10 +554,6 @@ impl Cpu {
             //         self.reg.pc = self.stack_pop(mem);
             //     }
             // }
-            // 0xc1 => {
-            //     let a = self.stack_pop(mem);
-            //     self.reg.set_bc(a);
-            // }
             // 0xc2 => {
             //     let a = self.imm_dw(mem);
             //     if !self.reg.get_flag(Flag::Z) {
@@ -608,10 +622,7 @@ impl Cpu {
             //         self.reg.pc = self.stack_pop(mem);
             //     }
             // }
-            // 0xd1 => {
-            //     let a = self.stack_pop(mem);
-            //     self.reg.set_de(a);
-            // }
+
             // 0xd2 => {
             //     let a = self.imm_dw(mem);
             //     if !self.reg.get_flag(Flag::C) {
@@ -681,10 +692,6 @@ impl Cpu {
             //         ecycle = 6;
             //         self.reg.pc = self.stack_pop(mem);
             //     }
-            // }
-            // 0xe1 => {
-            //     let a = self.stack_pop(mem);
-            //     self.reg.set_hl(a);
             // }
             // 0xe2 => {
             //     if !self.reg.get_flag(Flag::P) {
@@ -758,10 +765,6 @@ impl Cpu {
             //         ecycle = 6;
             //         self.reg.pc = self.stack_pop(mem);
             //     }
-            // }
-            // 0xf1 => {
-            //     let a = self.stack_pop(mem);
-            //     self.reg.set_af(a);
             // }
             // 0xf2 => {
             //     let a = self.imm_dw(mem);
