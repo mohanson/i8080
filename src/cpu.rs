@@ -169,6 +169,22 @@ impl Cpu {
         self.reg.a = r;
     }
 
+    fn alu_ora(&mut self, n: u8) {
+        let r = self.reg.a | n;
+        self.reg.set_flag(Flag::S, bit::get(r, 7));
+        self.reg.set_flag(Flag::Z, r == 0x00);
+        self.reg.set_flag(Flag::A, false);
+        self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
+        self.reg.set_flag(Flag::C, false);
+        self.reg.a = r;
+    }
+
+    fn alu_cmp(&mut self, n: u8) {
+        let r = self.reg.a;
+        self.alu_sub(n);
+        self.reg.a = r;
+    }
+
     fn alu_rlc(&mut self, n: u8) -> u8 {
         let c = bit::get(n, 7);
         let r = (n << 1) | u8::from(c);
@@ -206,22 +222,6 @@ impl Cpu {
         };
         self.reg.set_flag(Flag::C, c);
         r
-    }
-
-    fn alu_ora(&mut self, n: u8) {
-        let r = self.reg.a | n;
-        self.reg.set_flag(Flag::S, bit::get(r, 7));
-        self.reg.set_flag(Flag::Z, r == 0x00);
-        self.reg.set_flag(Flag::A, false);
-        self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
-        self.reg.set_flag(Flag::C, false);
-        self.reg.a = r;
-    }
-
-    fn alu_cmp(&mut self, n: u8) {
-        let r = self.reg.a;
-        self.alu_sub(n);
-        self.reg.a = r;
     }
 
     pub fn next(&mut self) -> u32 {
@@ -402,6 +402,26 @@ impl Cpu {
             0xae => self.alu_xra(self.get_m()),
             0xaf => self.alu_xra(self.reg.a),
 
+            // ORA Logical or Register or Memory With Accumulator
+            0xb0 => self.alu_ora(self.reg.b),
+            0xb1 => self.alu_ora(self.reg.c),
+            0xb2 => self.alu_ora(self.reg.d),
+            0xb3 => self.alu_ora(self.reg.e),
+            0xb4 => self.alu_ora(self.reg.h),
+            0xb5 => self.alu_ora(self.reg.l),
+            0xb6 => self.alu_ora(self.get_m()),
+            0xb7 => self.alu_ora(self.reg.a),
+
+            // CMP Compare Register or Memory With Accumulator
+            0xb8 => self.alu_cmp(self.reg.b),
+            0xb9 => self.alu_cmp(self.reg.c),
+            0xba => self.alu_cmp(self.reg.d),
+            0xbb => self.alu_cmp(self.reg.e),
+            0xbc => self.alu_cmp(self.reg.h),
+            0xbd => self.alu_cmp(self.reg.l),
+            0xbe => self.alu_cmp(self.get_m()),
+            0xbf => self.alu_cmp(self.reg.a),
+
             // 0x01 => {
             //     let a = self.imm_dw(mem);
             //     self.reg.set_bc(a);
@@ -496,22 +516,6 @@ impl Cpu {
             // }
             // 0x76 => self.halted = true,
             // 0x3e => self.reg.a = self.imm_ds(mem),
-            // 0xb0 => self.alu_ora(self.reg.b),
-            // 0xb1 => self.alu_ora(self.reg.c),
-            // 0xb2 => self.alu_ora(self.reg.d),
-            // 0xb3 => self.alu_ora(self.reg.e),
-            // 0xb4 => self.alu_ora(self.reg.h),
-            // 0xb5 => self.alu_ora(self.reg.l),
-            // 0xb6 => self.alu_ora(mem.get(self.reg.get_hl())),
-            // 0xb7 => self.alu_ora(self.reg.a),
-            // 0xb8 => self.alu_cmp(self.reg.b),
-            // 0xb9 => self.alu_cmp(self.reg.c),
-            // 0xba => self.alu_cmp(self.reg.d),
-            // 0xbb => self.alu_cmp(self.reg.e),
-            // 0xbc => self.alu_cmp(self.reg.h),
-            // 0xbd => self.alu_cmp(self.reg.l),
-            // 0xbe => self.alu_cmp(mem.get(self.reg.get_hl())),
-            // 0xbf => self.alu_cmp(self.reg.a),
             // 0xc0 => {
             //     if !self.reg.get_flag(Flag::Z) {
             //         ecycle = 6;

@@ -217,3 +217,56 @@ fn test_xra_1() {
 
 #[test]
 fn test_xra_2() {}
+
+#[test]
+fn test_ora() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.a = 0x33;
+    cpu.reg.c = 0x0f;
+    cpu.mem.set(0x0000, 0xb1);
+    cpu.next();
+    assert_eq!(cpu.reg.a, 0x3f);
+}
+
+#[test]
+fn test_cmp_0() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.a = 0x0a;
+    cpu.reg.e = 0x05;
+    cpu.mem.set(0x0000, 0xbb);
+    cpu.next();
+    assert_eq!(cpu.reg.a, 0x0a);
+    assert_eq!(cpu.reg.e, 0x05);
+    assert_eq!(cpu.reg.get_flag(Flag::C), false);
+    assert_eq!(cpu.reg.get_flag(Flag::Z), false);
+}
+
+#[test]
+fn test_cmp_1() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.a = 0x02;
+    cpu.reg.e = 0x05;
+    cpu.mem.set(0x0000, 0xbb);
+    cpu.next();
+    assert_eq!(cpu.reg.a, 0x02);
+    assert_eq!(cpu.reg.e, 0x05);
+    assert_eq!(cpu.reg.get_flag(Flag::C), true);
+    assert_eq!(cpu.reg.get_flag(Flag::Z), false);
+}
+
+#[test]
+fn test_cmp_2() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.a = 0xe5;
+    cpu.reg.e = 0x05;
+    cpu.mem.set(0x0000, 0xbb);
+    cpu.next();
+    assert_eq!(cpu.reg.a, 0xe5);
+    assert_eq!(cpu.reg.e, 0x05);
+    assert_eq!(cpu.reg.get_flag(Flag::C), false);
+    assert_eq!(cpu.reg.get_flag(Flag::Z), false);
+}
