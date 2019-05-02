@@ -464,12 +464,14 @@ impl Cpu {
             0x29 => self.alu_dad(self.reg.get_hl()),
             0x39 => self.alu_dad(self.reg.sp),
 
+            // INX Increment Register Pair
+            0x03 => self.reg.set_bc(self.reg.get_bc().wrapping_add(1)),
+            0x13 => self.reg.set_de(self.reg.get_de().wrapping_add(1)),
+            0x23 => self.reg.set_hl(self.reg.get_hl().wrapping_add(1)),
+            0x33 => self.reg.sp = self.reg.sp.wrapping_add(1),
+
             // 0x01 => {
             //     let a = self.imm_dw(mem);
-            //     self.reg.set_bc(a);
-            // }
-            // 0x03 => {
-            //     let a = self.reg.get_bc().wrapping_add(1);
             //     self.reg.set_bc(a);
             // }
             // 0x06 => self.reg.b = self.imm_ds(mem),
@@ -482,10 +484,6 @@ impl Cpu {
             // 0x10 => {}
             // 0x11 => {
             //     let a = self.imm_dw(mem);
-            //     self.reg.set_de(a);
-            // }
-            // 0x13 => {
-            //     let a = self.reg.get_de().wrapping_add(1);
             //     self.reg.set_de(a);
             // }
             // 0x16 => self.reg.d = self.imm_ds(mem),
@@ -503,10 +501,6 @@ impl Cpu {
             // 0x22 => {
             //     let a = self.imm_dw(mem);
             //     mem.set_word(a, self.reg.get_hl());
-            // }
-            // 0x23 => {
-            //     let v = self.reg.get_hl().wrapping_add(1);
-            //     self.reg.set_hl(v);
             // }
             // 0x26 => self.reg.h = self.imm_ds(mem),
             // 0x28 => {}
@@ -528,10 +522,6 @@ impl Cpu {
             // 0x32 => {
             //     let a = self.imm_dw(mem);
             //     mem.set(a, self.reg.a);
-            // }
-            // 0x33 => {
-            //     let a = self.reg.sp.wrapping_add(1);
-            //     self.reg.sp = a;
             // }
             // 0x36 => {
             //     let a = self.reg.get_hl();

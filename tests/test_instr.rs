@@ -403,3 +403,25 @@ fn test_dad_2() {
     cpu.next();
     assert_eq!(cpu.reg.get_hl(), 0xa17b << 1);
 }
+
+#[test]
+fn test_inx_1() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.d = 0x38;
+    cpu.reg.e = 0xff;
+    cpu.mem.set(0x0000, 0x13);
+    cpu.next();
+    assert_eq!(cpu.reg.d, 0x39);
+    assert_eq!(cpu.reg.e, 0x00);
+}
+
+#[test]
+fn test_inx_2() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.sp = 0xffff;
+    cpu.mem.set(0x0000, 0x33);
+    cpu.next();
+    assert_eq!(cpu.reg.sp, 0x0000);
+}
