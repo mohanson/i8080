@@ -185,18 +185,36 @@ impl Cpu {
         self.reg.a = r;
     }
 
-    fn alu_rlc(&mut self, n: u8) -> u8 {
-        let c = bit::get(n, 7);
-        let r = (n << 1) | u8::from(c);
+    fn alu_rlc(&mut self) {
+        let c = bit::get(self.reg.a, 7);
+        let r = (self.reg.a << 1) | u8::from(c);
         self.reg.set_flag(Flag::C, c);
-        r
+        self.reg.a = r;
     }
 
-    fn alu_ral(&mut self, n: u8) -> u8 {
-        let c = bit::get(n, 7);
-        let r = (n << 1) | u8::from(self.reg.get_flag(Flag::C));
+    fn alu_rrc(&mut self) {
+        let c = bit::get(self.reg.a, 0);
+        let r = if c { 0x80 | (self.reg.a >> 1) } else { self.reg.a >> 1 };
         self.reg.set_flag(Flag::C, c);
-        r
+        self.reg.a = r;
+    }
+
+    fn alu_ral(&mut self) {
+        let c = bit::get(self.reg.a, 7);
+        let r = (self.reg.a << 1) | u8::from(self.reg.get_flag(Flag::C));
+        self.reg.set_flag(Flag::C, c);
+        self.reg.a = r;
+    }
+
+    fn alu_rar(&mut self) {
+        let c = bit::get(self.reg.a, 0);
+        let r = if self.reg.get_flag(Flag::C) {
+            0x80 | (self.reg.a >> 1)
+        } else {
+            self.reg.a >> 1
+        };
+        self.reg.set_flag(Flag::C, c);
+        self.reg.a = r;
     }
 
     fn alu_dad(&mut self, n: u16) {
@@ -204,24 +222,6 @@ impl Cpu {
         let r = a.wrapping_add(n);
         self.reg.set_flag(Flag::C, a > 0xffff - n);
         self.reg.set_hl(r);
-    }
-
-    fn alu_rrc(&mut self, n: u8) -> u8 {
-        let c = bit::get(n, 0);
-        let r = if c { 0x80 | (n >> 1) } else { n >> 1 };
-        self.reg.set_flag(Flag::C, c);
-        r
-    }
-
-    fn alu_rar(&mut self, n: u8) -> u8 {
-        let c = bit::get(n, 0);
-        let r = if self.reg.get_flag(Flag::C) {
-            0x80 | (n >> 1)
-        } else {
-            n >> 1
-        };
-        self.reg.set_flag(Flag::C, c);
-        r
     }
 
     pub fn next(&mut self) -> u32 {
@@ -422,6 +422,18 @@ impl Cpu {
             0xbe => self.alu_cmp(self.get_m()),
             0xbf => self.alu_cmp(self.reg.a),
 
+            // RLC Rotate Accumulator Left
+            0x07 => self.alu_rlc(),
+
+            // RRC Rotate Accumulator Right
+            0x0f => self.alu_rrc(),
+
+            // RAL Rotate Accumulator Left Through Carry
+            0x17 => self.alu_ral(),
+
+            // RAR Rotate Accumulator Right Through Carry
+            0x1f => self.alu_rar(),
+
             // 0x01 => {
             //     let a = self.imm_dw(mem);
             //     self.reg.set_bc(a);
@@ -431,7 +443,6 @@ impl Cpu {
             //     self.reg.set_bc(a);
             // }
             // 0x06 => self.reg.b = self.imm_ds(mem),
-            // 0x07 => self.reg.a = self.alu_rlc(self.reg.a),
             // 0x08 => {}
             // 0x09 => self.alu_dad(self.reg.get_bc()),
             // 0x0b => {
@@ -439,7 +450,6 @@ impl Cpu {
             //     self.reg.set_bc(a);
             // }
             // 0x0e => self.reg.c = self.imm_ds(mem),
-            // 0x0f => self.reg.a = self.alu_rrc(self.reg.a),
             // 0x10 => {}
             // 0x11 => {
             //     let a = self.imm_dw(mem);
@@ -450,7 +460,6 @@ impl Cpu {
             //     self.reg.set_de(a);
             // }
             // 0x16 => self.reg.d = self.imm_ds(mem),
-            // 0x17 => self.reg.a = self.alu_ral(self.reg.a),
             // 0x18 => {}
             // 0x19 => self.alu_dad(self.reg.get_de()),
             // 0x1b => {
@@ -458,7 +467,6 @@ impl Cpu {
             //     self.reg.set_de(a);
             // }
             // 0x1e => self.reg.e = self.imm_ds(mem),
-            // 0x1f => self.reg.a = self.alu_rar(self.reg.a),
             // 0x20 => {}
             // 0x21 => {
             //     let a = self.imm_dw(mem);

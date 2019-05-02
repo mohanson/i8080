@@ -270,3 +270,48 @@ fn test_cmp_2() {
     assert_eq!(cpu.reg.get_flag(Flag::C), false);
     assert_eq!(cpu.reg.get_flag(Flag::Z), false);
 }
+
+#[test]
+fn test_rlc() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.a = 0xf2;
+    cpu.mem.set(0x0000, 0x07);
+    cpu.next();
+    assert_eq!(cpu.reg.a, 0xe5);
+    assert_eq!(cpu.reg.get_flag(Flag::C), true);
+}
+
+#[test]
+fn test_rrc() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.a = 0xf2;
+    cpu.mem.set(0x0000, 0x0f);
+    cpu.next();
+    assert_eq!(cpu.reg.a, 0x79);
+    assert_eq!(cpu.reg.get_flag(Flag::C), false);
+}
+
+#[test]
+fn test_ral() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.a = 0xb5;
+    cpu.mem.set(0x0000, 0x17);
+    cpu.next();
+    assert_eq!(cpu.reg.a, 0x6a);
+    assert_eq!(cpu.reg.get_flag(Flag::C), true);
+}
+
+#[test]
+fn test_rar() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.a = 0x6a;
+    cpu.reg.set_flag(Flag::C, true);
+    cpu.mem.set(0x0000, 0x1f);
+    cpu.next();
+    assert_eq!(cpu.reg.a, 0xb5);
+    assert_eq!(cpu.reg.get_flag(Flag::C), false);
+}
