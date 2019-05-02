@@ -279,7 +279,9 @@ impl Cpu {
             // DAA Decimal Adjust Accumulator
             0x27 => self.alu_daa(),
 
-            // 0x00 => {}
+            // NOP INSTRUCTIONS
+            0x00 => {}
+
             // 0x01 => {
             //     let a = self.imm_dw(mem);
             //     self.reg.set_bc(a);
