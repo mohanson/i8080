@@ -45,3 +45,17 @@ fn test_daa() {
     assert!(cpu.reg.get_flag(Flag::A));
     assert!(cpu.reg.get_flag(Flag::C));
 }
+
+
+
+#[test]
+fn test_mov() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.a = 0xff;
+    cpu.reg.h = 0x2b;
+    cpu.reg.l = 0xe9;
+    cpu.mem.set(0x0000, 0x77);
+    cpu.next();
+    assert_eq!(cpu.mem.get(0x2be9), 0xff);
+}
