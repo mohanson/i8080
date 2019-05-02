@@ -347,12 +347,18 @@ impl Cpu {
             0x7e => self.reg.a = self.get_m(),
             0x7f => {}
 
-            // 0x76 => self.halted = true,
+            // STAX Store Accumulator
+            0x02 => self.mem.set(self.reg.get_bc(), self.reg.a),
+            0x12 => self.mem.set(self.reg.get_de(), self.reg.a),
+
+            // LDAX Load Accumulator
+            0x0a => self.reg.a = self.mem.get(self.reg.get_bc()),
+            0x1a => self.reg.a = self.mem.get(self.reg.get_de()),
+
             // 0x01 => {
             //     let a = self.imm_dw(mem);
             //     self.reg.set_bc(a);
             // }
-            // 0x02 => mem.set(self.reg.get_bc(), self.reg.a),
             // 0x03 => {
             //     let a = self.reg.get_bc().wrapping_add(1);
             //     self.reg.set_bc(a);
@@ -361,7 +367,6 @@ impl Cpu {
             // 0x07 => self.reg.a = self.alu_rlc(self.reg.a),
             // 0x08 => {}
             // 0x09 => self.alu_dad(self.reg.get_bc()),
-            // 0x0a => self.reg.a = mem.get(self.reg.get_bc()),
             // 0x0b => {
             //     let a = self.reg.get_bc().wrapping_sub(1);
             //     self.reg.set_bc(a);
@@ -373,7 +378,6 @@ impl Cpu {
             //     let a = self.imm_dw(mem);
             //     self.reg.set_de(a);
             // }
-            // 0x12 => mem.set(self.reg.get_de(), self.reg.a),
             // 0x13 => {
             //     let a = self.reg.get_de().wrapping_add(1);
             //     self.reg.set_de(a);
@@ -382,7 +386,6 @@ impl Cpu {
             // 0x17 => self.reg.a = self.alu_ral(self.reg.a),
             // 0x18 => {}
             // 0x19 => self.alu_dad(self.reg.get_de()),
-            // 0x1a => self.reg.a = mem.get(self.reg.get_de()),
             // 0x1b => {
             //     let a = self.reg.get_de().wrapping_sub(1);
             //     self.reg.set_de(a);
@@ -444,6 +447,7 @@ impl Cpu {
             //     let a = self.reg.sp.wrapping_sub(1);
             //     self.reg.sp = a
             // }
+            // 0x76 => self.halted = true,
             // 0x3e => self.reg.a = self.imm_ds(mem),
             // 0x80 => self.alu_add(self.reg.b),
             // 0x81 => self.alu_add(self.reg.c),

@@ -46,8 +46,6 @@ fn test_daa() {
     assert!(cpu.reg.get_flag(Flag::C));
 }
 
-
-
 #[test]
 fn test_mov() {
     let mem = Box::new(help::Memory::new());
@@ -58,4 +56,28 @@ fn test_mov() {
     cpu.mem.set(0x0000, 0x77);
     cpu.next();
     assert_eq!(cpu.mem.get(0x2be9), 0xff);
+}
+
+#[test]
+fn test_stax() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.a = 0xff;
+    cpu.reg.b = 0x3f;
+    cpu.reg.c = 0x16;
+    cpu.mem.set(0x0000, 0x02);
+    cpu.next();
+    assert_eq!(cpu.mem.get(0x3f16), 0xff);
+}
+
+#[test]
+fn test_ldax() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.d = 0x93;
+    cpu.reg.e = 0x8b;
+    cpu.mem.set(0x938b, 0xff);
+    cpu.mem.set(0x0000, 0x1a);
+    cpu.next();
+    assert_eq!(cpu.reg.a, 0xff);
 }
