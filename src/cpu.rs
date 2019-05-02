@@ -149,6 +149,26 @@ impl Cpu {
         self.alu_sub(n)
     }
 
+    fn alu_ana(&mut self, n: u8) {
+        let r = self.reg.a & n;
+        self.reg.set_flag(Flag::S, bit::get(r, 7));
+        self.reg.set_flag(Flag::Z, r == 0x00);
+        self.reg.set_flag(Flag::A, false);
+        self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
+        self.reg.set_flag(Flag::C, false);
+        self.reg.a = r;
+    }
+
+    fn alu_xra(&mut self, n: u8) {
+        let r = self.reg.a ^ n;
+        self.reg.set_flag(Flag::S, bit::get(r, 7));
+        self.reg.set_flag(Flag::Z, r == 0x00);
+        self.reg.set_flag(Flag::A, false);
+        self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
+        self.reg.set_flag(Flag::C, false);
+        self.reg.a = r;
+    }
+
     fn alu_rlc(&mut self, n: u8) -> u8 {
         let c = bit::get(n, 7);
         let r = (n << 1) | u8::from(c);
@@ -186,26 +206,6 @@ impl Cpu {
         };
         self.reg.set_flag(Flag::C, c);
         r
-    }
-
-    fn alu_ana(&mut self, n: u8) {
-        let r = self.reg.a & n;
-        self.reg.set_flag(Flag::S, bit::get(r, 7));
-        self.reg.set_flag(Flag::Z, r == 0x00);
-        self.reg.set_flag(Flag::A, false);
-        self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
-        self.reg.set_flag(Flag::C, false);
-        self.reg.a = r;
-    }
-
-    fn alu_xra(&mut self, n: u8) {
-        let r = self.reg.a ^ n;
-        self.reg.set_flag(Flag::S, bit::get(r, 7));
-        self.reg.set_flag(Flag::Z, r == 0x00);
-        self.reg.set_flag(Flag::A, false);
-        self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
-        self.reg.set_flag(Flag::C, false);
-        self.reg.a = r;
     }
 
     fn alu_ora(&mut self, n: u8) {
@@ -382,6 +382,26 @@ impl Cpu {
             0x9e => self.alu_sbb(self.get_m()),
             0x9f => self.alu_sbb(self.reg.a),
 
+            // ANA Logical and Register or Memory With Accumulator
+            0xa0 => self.alu_ana(self.reg.b),
+            0xa1 => self.alu_ana(self.reg.c),
+            0xa2 => self.alu_ana(self.reg.d),
+            0xa3 => self.alu_ana(self.reg.e),
+            0xa4 => self.alu_ana(self.reg.h),
+            0xa5 => self.alu_ana(self.reg.l),
+            0xa6 => self.alu_ana(self.get_m()),
+            0xa7 => self.alu_ana(self.reg.a),
+
+            // XRA Logical Exclusive-Or Register or Memory With Accumulator (Zero Accumulator)
+            0xa8 => self.alu_xra(self.reg.b),
+            0xa9 => self.alu_xra(self.reg.c),
+            0xaa => self.alu_xra(self.reg.d),
+            0xab => self.alu_xra(self.reg.e),
+            0xac => self.alu_xra(self.reg.h),
+            0xad => self.alu_xra(self.reg.l),
+            0xae => self.alu_xra(self.get_m()),
+            0xaf => self.alu_xra(self.reg.a),
+
             // 0x01 => {
             //     let a = self.imm_dw(mem);
             //     self.reg.set_bc(a);
@@ -476,22 +496,6 @@ impl Cpu {
             // }
             // 0x76 => self.halted = true,
             // 0x3e => self.reg.a = self.imm_ds(mem),
-            // 0xa0 => self.alu_ana(self.reg.b),
-            // 0xa1 => self.alu_ana(self.reg.c),
-            // 0xa2 => self.alu_ana(self.reg.d),
-            // 0xa3 => self.alu_ana(self.reg.e),
-            // 0xa4 => self.alu_ana(self.reg.h),
-            // 0xa5 => self.alu_ana(self.reg.l),
-            // 0xa6 => self.alu_ana(mem.get(self.reg.get_hl())),
-            // 0xa7 => self.alu_ana(self.reg.a),
-            // 0xa8 => self.alu_xra(self.reg.b),
-            // 0xa9 => self.alu_xra(self.reg.c),
-            // 0xaa => self.alu_xra(self.reg.d),
-            // 0xab => self.alu_xra(self.reg.e),
-            // 0xac => self.alu_xra(self.reg.h),
-            // 0xad => self.alu_xra(self.reg.l),
-            // 0xae => self.alu_xra(mem.get(self.reg.get_hl())),
-            // 0xaf => self.alu_xra(self.reg.a),
             // 0xb0 => self.alu_ora(self.reg.b),
             // 0xb1 => self.alu_ora(self.reg.c),
             // 0xb2 => self.alu_ora(self.reg.d),
