@@ -83,7 +83,7 @@ fn test_ldax() {
 }
 
 #[test]
-fn test_add_0() {
+fn test_add_1() {
     let mem = Box::new(help::Memory::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.d = 0x2e;
@@ -99,7 +99,7 @@ fn test_add_0() {
 }
 
 #[test]
-fn test_add_1() {
+fn test_add_2() {
     let mem = Box::new(help::Memory::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0x01;
@@ -109,7 +109,7 @@ fn test_add_1() {
 }
 
 #[test]
-fn test_adc_0() {
+fn test_adc_1() {
     let mem = Box::new(help::Memory::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0x42;
@@ -125,7 +125,7 @@ fn test_adc_0() {
 }
 
 #[test]
-fn test_adc_1() {
+fn test_adc_2() {
     let mem = Box::new(help::Memory::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0x42;
@@ -187,7 +187,7 @@ fn test_ana() {
 }
 
 #[test]
-fn test_xra_0() {
+fn test_xra_1() {
     let mem = Box::new(help::Memory::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0x0a;
@@ -205,7 +205,7 @@ fn test_xra_0() {
 }
 
 #[test]
-fn test_xra_1() {
+fn test_xra_2() {
     let mem = Box::new(help::Memory::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0xff;
@@ -216,7 +216,7 @@ fn test_xra_1() {
 }
 
 #[test]
-fn test_xra_2() {}
+fn test_xra_3() {}
 
 #[test]
 fn test_ora() {
@@ -230,7 +230,7 @@ fn test_ora() {
 }
 
 #[test]
-fn test_cmp_0() {
+fn test_cmp_1() {
     let mem = Box::new(help::Memory::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0x0a;
@@ -244,7 +244,7 @@ fn test_cmp_0() {
 }
 
 #[test]
-fn test_cmp_1() {
+fn test_cmp_2() {
     let mem = Box::new(help::Memory::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0x02;
@@ -258,7 +258,7 @@ fn test_cmp_1() {
 }
 
 #[test]
-fn test_cmp_2() {
+fn test_cmp_3() {
     let mem = Box::new(help::Memory::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0xe5;
@@ -317,7 +317,7 @@ fn test_rar() {
 }
 
 #[test]
-fn test_stack_push_0() {
+fn test_stack_push_1() {
     let mem = Box::new(help::Memory::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.d = 0x8f;
@@ -331,7 +331,7 @@ fn test_stack_push_0() {
 }
 
 #[test]
-fn test_stack_push_1() {
+fn test_stack_push_2() {
     let mem = Box::new(help::Memory::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0x1f;
@@ -347,7 +347,7 @@ fn test_stack_push_1() {
 }
 
 #[test]
-fn test_stack_pop_0() {
+fn test_stack_pop_1() {
     let mem = Box::new(help::Memory::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.mem.set(0x1239, 0x3d);
@@ -361,7 +361,7 @@ fn test_stack_pop_0() {
 }
 
 #[test]
-fn test_stack_pop_1() {
+fn test_stack_pop_2() {
     let mem = Box::new(help::Memory::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.mem.set(0x2c00, 0xc3);
@@ -371,9 +371,35 @@ fn test_stack_pop_1() {
     cpu.next();
     assert_eq!(cpu.reg.a, 0xff);
     assert_eq!(cpu.reg.f, 0xc3);
-    // assert_eq!(cpu.reg.get_flag(Flag::S), true);
-    // assert_eq!(cpu.reg.get_flag(Flag::Z), true);
-    // assert_eq!(cpu.reg.get_flag(Flag::A), false);
-    // assert_eq!(cpu.reg.get_flag(Flag::P), false);
-    // assert_eq!(cpu.reg.get_flag(Flag::C), true);
+    assert_eq!(cpu.reg.get_flag(Flag::S), true);
+    assert_eq!(cpu.reg.get_flag(Flag::Z), true);
+    assert_eq!(cpu.reg.get_flag(Flag::A), false);
+    assert_eq!(cpu.reg.get_flag(Flag::P), false);
+    assert_eq!(cpu.reg.get_flag(Flag::C), true);
+}
+
+#[test]
+fn test_dad_1() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.b = 0x33;
+    cpu.reg.c = 0x9f;
+    cpu.reg.h = 0xa1;
+    cpu.reg.l = 0x7b;
+    cpu.mem.set(0x0000, 0x09);
+    cpu.next();
+    assert_eq!(cpu.reg.h, 0xd5);
+    assert_eq!(cpu.reg.l, 0x1a);
+    assert_eq!(cpu.reg.get_flag(Flag::C), false);
+}
+
+#[test]
+fn test_dad_2() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.h = 0xa1;
+    cpu.reg.l = 0x7b;
+    cpu.mem.set(0x0000, 0x29);
+    cpu.next();
+    assert_eq!(cpu.reg.get_hl(), 0xa17b << 1);
 }

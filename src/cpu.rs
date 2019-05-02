@@ -458,6 +458,12 @@ impl Cpu {
                 self.reg.set_af(a);
             }
 
+            // DAD Double Add
+            0x09 => self.alu_dad(self.reg.get_bc()),
+            0x19 => self.alu_dad(self.reg.get_de()),
+            0x29 => self.alu_dad(self.reg.get_hl()),
+            0x39 => self.alu_dad(self.reg.sp),
+
             // 0x01 => {
             //     let a = self.imm_dw(mem);
             //     self.reg.set_bc(a);
@@ -468,7 +474,6 @@ impl Cpu {
             // }
             // 0x06 => self.reg.b = self.imm_ds(mem),
             // 0x08 => {}
-            // 0x09 => self.alu_dad(self.reg.get_bc()),
             // 0x0b => {
             //     let a = self.reg.get_bc().wrapping_sub(1);
             //     self.reg.set_bc(a);
@@ -485,7 +490,6 @@ impl Cpu {
             // }
             // 0x16 => self.reg.d = self.imm_ds(mem),
             // 0x18 => {}
-            // 0x19 => self.alu_dad(self.reg.get_de()),
             // 0x1b => {
             //     let a = self.reg.get_de().wrapping_sub(1);
             //     self.reg.set_de(a);
@@ -506,7 +510,6 @@ impl Cpu {
             // }
             // 0x26 => self.reg.h = self.imm_ds(mem),
             // 0x28 => {}
-            // 0x29 => self.alu_dad(self.reg.get_hl()),
             // 0x2a => {
             //     let a = self.imm_dw(mem);
             //     let b = mem.get_word(a);
@@ -536,7 +539,6 @@ impl Cpu {
             //     mem.set(a, b);
             // }
             // 0x38 => {}
-            // 0x39 => self.alu_dad(self.reg.sp),
             // 0x3a => {
             //     let a = self.imm_dw(mem);
             //     let b = mem.get(a);
