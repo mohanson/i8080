@@ -81,3 +81,29 @@ fn test_ldax() {
     cpu.next();
     assert_eq!(cpu.reg.a, 0xff);
 }
+
+#[test]
+fn test_add_0() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.d = 0x2e;
+    cpu.reg.a = 0x6c;
+    cpu.mem.set(0x0000, 0x82);
+    cpu.next();
+    assert_eq!(cpu.reg.a, 0x9a);
+    assert_eq!(cpu.reg.get_flag(Flag::Z), false);
+    assert_eq!(cpu.reg.get_flag(Flag::C), false);
+    assert_eq!(cpu.reg.get_flag(Flag::P), true);
+    assert_eq!(cpu.reg.get_flag(Flag::S), true);
+    assert_eq!(cpu.reg.get_flag(Flag::A), true);
+}
+
+#[test]
+fn test_add_1() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.a = 0x01;
+    cpu.mem.set(0x0000, 0x87);
+    cpu.next();
+    assert_eq!(cpu.reg.a, 0x02);
+}

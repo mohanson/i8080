@@ -115,6 +115,17 @@ impl Cpu {
         self.reg.a = r;
     }
 
+    fn alu_add(&mut self, n: u8) {
+        let a = self.reg.a;
+        let r = a.wrapping_add(n);
+        self.reg.set_flag(Flag::S, bit::get(r, 7));
+        self.reg.set_flag(Flag::Z, r == 0x00);
+        self.reg.set_flag(Flag::A, (a & 0x0f) + (n & 0x0f) > 0x0f);
+        self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
+        self.reg.set_flag(Flag::C, u16::from(a) + u16::from(n) > 0xff);
+        self.reg.a = r;
+    }
+
     fn alu_rlc(&mut self, n: u8) -> u8 {
         let c = bit::get(n, 7);
         let r = (n << 1) | u8::from(c);
@@ -152,17 +163,6 @@ impl Cpu {
         };
         self.reg.set_flag(Flag::C, c);
         r
-    }
-
-    fn alu_add(&mut self, n: u8) {
-        let a = self.reg.a;
-        let r = a.wrapping_add(n);
-        self.reg.set_flag(Flag::S, bit::get(r, 7));
-        self.reg.set_flag(Flag::Z, r == 0x00);
-        self.reg.set_flag(Flag::A, (a & 0x0f) + (n & 0x0f) > 0x0f);
-        self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
-        self.reg.set_flag(Flag::C, u16::from(a) + u16::from(n) > 0xff);
-        self.reg.a = r;
     }
 
     fn alu_adc(&mut self, n: u8) {
@@ -355,6 +355,16 @@ impl Cpu {
             0x0a => self.reg.a = self.mem.get(self.reg.get_bc()),
             0x1a => self.reg.a = self.mem.get(self.reg.get_de()),
 
+            // ADD ADD Register or Memory To Accumulator
+            0x80 => self.alu_add(self.reg.b),
+            0x81 => self.alu_add(self.reg.c),
+            0x82 => self.alu_add(self.reg.d),
+            0x83 => self.alu_add(self.reg.e),
+            0x84 => self.alu_add(self.reg.h),
+            0x85 => self.alu_add(self.reg.l),
+            0x86 => self.alu_add(self.get_m()),
+            0x87 => self.alu_add(self.reg.a),
+
             // 0x01 => {
             //     let a = self.imm_dw(mem);
             //     self.reg.set_bc(a);
@@ -449,14 +459,6 @@ impl Cpu {
             // }
             // 0x76 => self.halted = true,
             // 0x3e => self.reg.a = self.imm_ds(mem),
-            // 0x80 => self.alu_add(self.reg.b),
-            // 0x81 => self.alu_add(self.reg.c),
-            // 0x82 => self.alu_add(self.reg.d),
-            // 0x83 => self.alu_add(self.reg.e),
-            // 0x84 => self.alu_add(self.reg.h),
-            // 0x85 => self.alu_add(self.reg.l),
-            // 0x86 => self.alu_add(mem.get(self.reg.get_hl())),
-            // 0x87 => self.alu_add(self.reg.a),
             // 0x88 => self.alu_adc(self.reg.b),
             // 0x89 => self.alu_adc(self.reg.c),
             // 0x8a => self.alu_adc(self.reg.d),
