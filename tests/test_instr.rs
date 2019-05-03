@@ -520,3 +520,19 @@ fn test_adi() {
     assert_eq!(cpu.reg.get_flag(Flag::Z), false);
     assert_eq!(cpu.reg.get_flag(Flag::S), false);
 }
+
+#[test]
+fn test_aci() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.mem.set(0x0000, 0x3e);
+    cpu.mem.set(0x0001, 0x56);
+    cpu.mem.set(0x0002, 0xce);
+    cpu.mem.set(0x0003, 0xbe);
+    cpu.mem.set(0x0004, 0xce);
+    cpu.mem.set(0x0005, 0x42);
+    cpu.next();
+    cpu.next();
+    cpu.next();
+    assert_eq!(cpu.reg.a, 0x57);
+}

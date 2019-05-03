@@ -513,6 +513,12 @@ impl Cpu {
                 self.alu_add(a);
             }
 
+            // ACI Add Immediate To Accumulator With Carry
+            0xce => {
+                let a = self.imm_ds();
+                self.alu_adc(a);
+            }
+
             // 0x01 => {
             //     let a = self.imm_dw(mem);
             //     self.reg.set_bc(a);
@@ -610,10 +616,6 @@ impl Cpu {
             // 0xcd => {
             //     self.stack_add(mem, self.reg.pc + 2);
             //     self.reg.pc = mem.get_word(self.reg.pc);
-            // }
-            // 0xce => {
-            //     let v = self.imm_ds(mem);
-            //     self.alu_adc(v);
             // }
             // 0xcf => {
             //     self.stack_add(mem, self.reg.pc);
