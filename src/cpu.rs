@@ -703,26 +703,21 @@ impl Cpu {
                 self.reg.pc = u16::from(opcode & 0x38);
             }
 
-            // 0x76 => self.halted = true,
-            // 0xd3 => {
-            //     let a = self.imm_ds(mem);
-            //     println!("out => port={} data={}", a, self.reg.a);
-            // }
-            // 0xdb => {
-            //     println!("0xdb input");
-            // }
-            // 0xe4 => {
-            //     let a = self.imm_dw(mem);
-            //     if !self.reg.get_flag(Flag::P) {
-            //         ecycle = 6;
-            //         self.stack_add(mem, self.reg.pc);
-            //         self.reg.pc = a;
-            //     }
-            // }
-            // 0xf3 => unimplemented!(),
-            // 0xfb => {
-            //     self.ei = true;
-            // }
+            // INTERRUPT FLIP-FLOP INSTRUCTIONS
+            0xfb => self.ei = true,
+            0xf3 => self.ei = false,
+
+            // INPUT/OUTPUT INSTRUCTIONS
+            0xdb => {
+                println!("0xdb input");
+            }
+            0xd3 => {
+                let a = self.imm_ds();
+                println!("out => port={} data={}", a, self.reg.a);
+            }
+
+            // HLT HALT INSTRUCTION
+            0x76 => self.halted = true,
             _ => {}
         };
         OP_CYCLES[opcode as usize] + ecycle
