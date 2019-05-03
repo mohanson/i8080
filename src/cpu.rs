@@ -697,29 +697,47 @@ impl Cpu {
                 }
             }
 
+            // RST INSTRUCTION
+            0xc7 => {
+                self.stack_add(self.reg.pc);
+                self.reg.pc = 0x00;
+            }
+            0xcf => {
+                self.stack_add(self.reg.pc);
+                self.reg.pc = 0x08;
+            }
+            0xd7 => {
+                self.stack_add(self.reg.pc);
+                self.reg.pc = 0x10;
+            }
+            0xdf => {
+                self.stack_add(self.reg.pc);
+                self.reg.pc = 0x18;
+            }
+            0xe7 => {
+                self.stack_add(self.reg.pc);
+                self.reg.pc = 0x20;
+            }
+            0xef => {
+                self.stack_add(self.reg.pc);
+                self.reg.pc = 0x28;
+            }
+            0xf7 => {
+                self.stack_add(self.reg.pc);
+                self.reg.pc = 0x30;
+            }
+            0xff => {
+                self.stack_add(self.reg.pc);
+                self.reg.pc = 0x38;
+            }
+
             // 0x76 => self.halted = true,
-            // 0xc7 => {
-            //     self.stack_add(mem, self.reg.pc);
-            //     self.reg.pc = 0x00;
-            // }
-            // 0xcf => {
-            //     self.stack_add(mem, self.reg.pc);
-            //     self.reg.pc = 0x08;
-            // }
             // 0xd3 => {
             //     let a = self.imm_ds(mem);
             //     println!("out => port={} data={}", a, self.reg.a);
             // }
-            // 0xd7 => {
-            //     self.stack_add(mem, self.reg.pc);
-            //     self.reg.pc = 0x10;
-            // }
             // 0xdb => {
             //     println!("0xdb input");
-            // }
-            // 0xdf => {
-            //     self.stack_add(mem, self.reg.pc);
-            //     self.reg.pc = 0x18;
             // }
             // 0xe4 => {
             //     let a = self.imm_dw(mem);
@@ -729,25 +747,9 @@ impl Cpu {
             //         self.reg.pc = a;
             //     }
             // }
-            // 0xe7 => {
-            //     self.stack_add(mem, self.reg.pc);
-            //     self.reg.pc = 0x20;
-            // }
-            // 0xef => {
-            //     self.stack_add(mem, self.reg.pc);
-            //     self.reg.pc = 0x28;
-            // }
             // 0xf3 => unimplemented!(),
-            // 0xf7 => {
-            //     self.stack_add(mem, self.reg.pc);
-            //     self.reg.pc = 0x30;
-            // }
             // 0xfb => {
             //     self.ei = true;
-            // }
-            // 0xff => {
-            //     self.stack_add(mem, self.reg.pc);
-            //     self.reg.pc = 0x38;
             // }
             _ => {}
         };
