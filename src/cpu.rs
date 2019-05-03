@@ -1,3 +1,4 @@
+use super::asm;
 use super::bit;
 use super::memory::Memory;
 use super::register::{Flag, Register};
@@ -63,13 +64,13 @@ impl Cpu {
     }
 
     fn stack_add(&mut self, v: u16) {
-        self.reg.sp -= 2;
+        self.reg.sp = self.reg.sp.wrapping_sub(2);
         self.mem.set_word(self.reg.sp, v);
     }
 
     fn stack_pop(&mut self) -> u16 {
         let r = self.mem.get_word(self.reg.sp);
-        self.reg.sp += 2;
+        self.reg.sp = self.reg.sp.wrapping_add(2);
         r
     }
 
@@ -234,6 +235,22 @@ impl Cpu {
             0xdd | 0xed | 0xfd => 0xcd,
             _ => opcode,
         };
+
+        log::debug!(
+            "{} PC={:04x} SP={:04x} A={:02x} F={:02x} B={:02x} C={:02x} D={:02x} E={:02x} H={:02x} L={:02x}",
+            asm::asm(opcode),
+            self.reg.pc - 1,
+            self.reg.sp,
+            self.reg.a,
+            self.reg.f,
+            self.reg.b,
+            self.reg.c,
+            self.reg.d,
+            self.reg.e,
+            self.reg.h,
+            self.reg.l
+        );
+
         let mut ecycle = 0;
         match opcode {
             // CARRY BIT INSTRUCTIONS
@@ -720,6 +737,7 @@ impl Cpu {
             0x76 => self.halted = true,
             _ => {}
         };
+
         OP_CYCLES[opcode as usize] + ecycle
     }
 }

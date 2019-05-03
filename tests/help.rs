@@ -1,5 +1,5 @@
 pub struct Memory {
-    data: Vec<u8>,
+    pub data: Vec<u8>,
 }
 
 impl i8080::Memory for Memory {
@@ -14,6 +14,6 @@ impl i8080::Memory for Memory {
 
 impl Memory {
     pub fn new() -> Self {
-        Memory { data: vec![0; 0xffff] }
+        Memory { data: vec![0; 65536] }
     }
 }
