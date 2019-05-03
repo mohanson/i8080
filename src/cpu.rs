@@ -698,37 +698,9 @@ impl Cpu {
             }
 
             // RST INSTRUCTION
-            0xc7 => {
+            0xc7 | 0xcf | 0xd7 | 0xdf | 0xe7 | 0xef | 0xf7 | 0xff => {
                 self.stack_add(self.reg.pc);
-                self.reg.pc = 0x00;
-            }
-            0xcf => {
-                self.stack_add(self.reg.pc);
-                self.reg.pc = 0x08;
-            }
-            0xd7 => {
-                self.stack_add(self.reg.pc);
-                self.reg.pc = 0x10;
-            }
-            0xdf => {
-                self.stack_add(self.reg.pc);
-                self.reg.pc = 0x18;
-            }
-            0xe7 => {
-                self.stack_add(self.reg.pc);
-                self.reg.pc = 0x20;
-            }
-            0xef => {
-                self.stack_add(self.reg.pc);
-                self.reg.pc = 0x28;
-            }
-            0xf7 => {
-                self.stack_add(self.reg.pc);
-                self.reg.pc = 0x30;
-            }
-            0xff => {
-                self.stack_add(self.reg.pc);
-                self.reg.pc = 0x38;
+                self.reg.pc = u16::from(opcode & 0x38);
             }
 
             // 0x76 => self.halted = true,
