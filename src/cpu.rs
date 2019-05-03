@@ -664,7 +664,7 @@ impl Cpu {
                 };
                 if cond {
                     ecycle = 6;
-                    self.stack_add(self.reg.pc + 2);
+                    self.stack_add(self.reg.pc);
                     self.reg.pc = a;
                 }
             }
