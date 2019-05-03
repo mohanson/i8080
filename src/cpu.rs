@@ -669,33 +669,42 @@ impl Cpu {
                 }
             }
 
+            // RETURN FROM SUBROUTINE INSTRUCTIONS
+            0xc9 | 0xd8 | 0xd0 | 0xc8 | 0xc0 | 0xf8 | 0xf0 | 0xe8 | 0xe0 => {
+                let cond = match opcode {
+                    // RET Return
+                    0xc9 => true,
+                    // RC Return If Carry
+                    0xd8 => self.reg.get_flag(Flag::C),
+                    // RNC Return If No Carry
+                    0xd0 => !self.reg.get_flag(Flag::C),
+                    // RZ Return If Zero
+                    0xc8 => self.reg.get_flag(Flag::Z),
+                    // RNZ Return If Not Zero
+                    0xc0 => !self.reg.get_flag(Flag::Z),
+                    // RM Return If Minus
+                    0xf8 => self.reg.get_flag(Flag::S),
+                    // RP Return If Plus
+                    0xf0 => !self.reg.get_flag(Flag::S),
+                    // RPE Return If Parity Even
+                    0xe8 => self.reg.get_flag(Flag::P),
+                    // RPO Return If Parity Odd
+                    0xe0 => !self.reg.get_flag(Flag::P),
+                    _ => unimplemented!(),
+                };
+                if cond {
+                    self.reg.pc = self.stack_pop()
+                }
+            }
+
             // 0x76 => self.halted = true,
-            // 0xc0 => {
-            //     if !self.reg.get_flag(Flag::Z) {
-            //         ecycle = 6;
-            //         self.reg.pc = self.stack_pop(mem);
-            //     }
-            // }
             // 0xc7 => {
             //     self.stack_add(mem, self.reg.pc);
             //     self.reg.pc = 0x00;
             // }
-            // 0xc8 => {
-            //     if self.reg.get_flag(Flag::Z) {
-            //         ecycle = 6;
-            //         self.reg.pc = self.stack_pop(mem);
-            //     }
-            // }
-            // 0xc9 => self.reg.pc = self.stack_pop(mem),
             // 0xcf => {
             //     self.stack_add(mem, self.reg.pc);
             //     self.reg.pc = 0x08;
-            // }
-            // 0xd0 => {
-            //     if !self.reg.get_flag(Flag::C) {
-            //         ecycle = 6;
-            //         self.reg.pc = self.stack_pop(mem);
-            //     }
             // }
             // 0xd3 => {
             //     let a = self.imm_ds(mem);
@@ -705,24 +714,12 @@ impl Cpu {
             //     self.stack_add(mem, self.reg.pc);
             //     self.reg.pc = 0x10;
             // }
-            // 0xd8 => {
-            //     if self.reg.get_flag(Flag::C) {
-            //         ecycle = 6;
-            //         self.reg.pc = self.stack_pop(mem);
-            //     }
-            // }
             // 0xdb => {
             //     println!("0xdb input");
             // }
             // 0xdf => {
             //     self.stack_add(mem, self.reg.pc);
             //     self.reg.pc = 0x18;
-            // }
-            // 0xe0 => {
-            //     if !self.reg.get_flag(Flag::P) {
-            //         ecycle = 6;
-            //         self.reg.pc = self.stack_pop(mem);
-            //     }
             // }
             // 0xe4 => {
             //     let a = self.imm_dw(mem);
@@ -736,32 +733,14 @@ impl Cpu {
             //     self.stack_add(mem, self.reg.pc);
             //     self.reg.pc = 0x20;
             // }
-            // 0xe8 => {
-            //     if !self.reg.get_flag(Flag::P) {
-            //         ecycle = 6;
-            //         self.reg.pc = self.stack_pop(mem);
-            //     }
-            // }
             // 0xef => {
             //     self.stack_add(mem, self.reg.pc);
             //     self.reg.pc = 0x28;
-            // }
-            // 0xf0 => {
-            //     if self.reg.get_flag(Flag::P) {
-            //         ecycle = 6;
-            //         self.reg.pc = self.stack_pop(mem);
-            //     }
             // }
             // 0xf3 => unimplemented!(),
             // 0xf7 => {
             //     self.stack_add(mem, self.reg.pc);
             //     self.reg.pc = 0x30;
-            // }
-            // 0xf8 => {
-            //     if self.reg.get_flag(Flag::S) {
-            //         ecycle = 6;
-            //         self.reg.pc = self.stack_pop(mem);
-            //     }
             // }
             // 0xfb => {
             //     self.ei = true;
