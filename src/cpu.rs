@@ -531,6 +531,30 @@ impl Cpu {
                 self.alu_sbb(v);
             }
 
+            // ANI And Immediate With AccumulatorLabel
+            0xe6 => {
+                let a = self.imm_ds();
+                self.alu_ana(a);
+            }
+
+            // XRI Exclusive-Or Immediate With Accumulator
+            0xee => {
+                let a = self.imm_ds();
+                self.alu_xra(a);
+            }
+
+            // ORI Or Immediate With Accumulator
+            0xf6 => {
+                let a = self.imm_ds();
+                self.alu_ora(a);
+            }
+
+            // CPI Compare Immediate With Accumulator
+            0xfe => {
+                let a = self.imm_ds();
+                self.alu_cmp(a);
+            }
+
             // 0x01 => {
             //     let a = self.imm_dw(mem);
             //     self.reg.set_bc(a);
@@ -716,10 +740,6 @@ impl Cpu {
             //         self.reg.pc = a;
             //     }
             // }
-            // 0xe6 => {
-            //     let a = self.imm_ds(mem);
-            //     self.alu_ana(a);
-            // }
             // 0xe7 => {
             //     self.stack_add(mem, self.reg.pc);
             //     self.reg.pc = 0x20;
@@ -750,10 +770,6 @@ impl Cpu {
             //     self.stack_add(mem, self.reg.pc + 2);
             //     self.reg.pc = mem.get_word(self.reg.pc);
             // }
-            // 0xee => {
-            //     let a = self.imm_ds(mem);
-            //     self.alu_xra(a);
-            // }
             // 0xef => {
             //     self.stack_add(mem, self.reg.pc);
             //     self.reg.pc = 0x28;
@@ -773,10 +789,6 @@ impl Cpu {
             // }
             // 0xf3 => unimplemented!(),
             // 0xf4 => unimplemented!(),
-            // 0xf6 => {
-            //     let a = self.imm_ds(mem);
-            //     self.alu_ora(a);
-            // }
             // 0xf7 => {
             //     self.stack_add(mem, self.reg.pc);
             //     self.reg.pc = 0x30;
@@ -808,10 +820,6 @@ impl Cpu {
             // 0xfd => {
             //     self.stack_add(mem, self.reg.pc + 2);
             //     self.reg.pc = mem.get_word(self.reg.pc);
-            // }
-            // 0xfe => {
-            //     let a = self.imm_ds(mem);
-            //     self.alu_cmp(a);
             // }
             // 0xff => {
             //     self.stack_add(mem, self.reg.pc);

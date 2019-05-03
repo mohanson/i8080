@@ -585,3 +585,57 @@ fn test_sbi_2() {
     assert_eq!(cpu.reg.get_flag(Flag::P), false);
     assert_eq!(cpu.reg.get_flag(Flag::C), true);
 }
+
+#[test]
+fn test_ani() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.c = 0x3a;
+    cpu.mem.set(0x0000, 0x79);
+    cpu.mem.set(0x0001, 0xe6);
+    cpu.mem.set(0x0002, 0x0f);
+    cpu.next();
+    cpu.next();
+    assert_eq!(cpu.reg.a, 0x0a);
+}
+
+#[test]
+fn test_xri() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.a = 0x3b;
+    cpu.mem.set(0x0000, 0xee);
+    cpu.mem.set(0x0001, 0x81);
+    cpu.next();
+    assert_eq!(cpu.reg.a, 0xba);
+    assert_eq!(cpu.reg.get_flag(Flag::C), false);
+}
+
+#[test]
+fn test_ori() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.c = 0xb5;
+    cpu.mem.set(0x0000, 0x79);
+    cpu.mem.set(0x0001, 0xf6);
+    cpu.mem.set(0x0002, 0x0f);
+    cpu.next();
+    cpu.next();
+    assert_eq!(cpu.reg.a, 0xbf);
+    assert_eq!(cpu.reg.get_flag(Flag::C), false);
+}
+
+#[test]
+fn test_cpi() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.mem.set(0x0000, 0x3e);
+    cpu.mem.set(0x0001, 0x4a);
+    cpu.mem.set(0x0002, 0xfe);
+    cpu.mem.set(0x0003, 0x40);
+    cpu.next();
+    cpu.next();
+    assert_eq!(cpu.reg.a, 0x4a);
+    assert_eq!(cpu.reg.get_flag(Flag::Z), false);
+    assert_eq!(cpu.reg.get_flag(Flag::C), false);
+}
