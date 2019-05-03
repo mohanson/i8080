@@ -1,2 +1,4 @@
 /target
 **/*.rs.bk
+
+/res/cpu_tests
