@@ -91,11 +91,11 @@ fn test_add_1() {
     cpu.mem.set(0x0000, 0x82);
     cpu.next();
     assert_eq!(cpu.reg.a, 0x9a);
-    assert_eq!(cpu.reg.get_flag(Flag::Z), false);
-    assert_eq!(cpu.reg.get_flag(Flag::C), false);
-    assert_eq!(cpu.reg.get_flag(Flag::P), true);
     assert_eq!(cpu.reg.get_flag(Flag::S), true);
+    assert_eq!(cpu.reg.get_flag(Flag::Z), false);
     assert_eq!(cpu.reg.get_flag(Flag::A), true);
+    assert_eq!(cpu.reg.get_flag(Flag::P), true);
+    assert_eq!(cpu.reg.get_flag(Flag::C), false);
 }
 
 #[test]
@@ -117,11 +117,11 @@ fn test_adc_1() {
     cpu.mem.set(0x0000, 0x89);
     cpu.next();
     assert_eq!(cpu.reg.a, 0x7f);
-    assert_eq!(cpu.reg.get_flag(Flag::Z), false);
-    assert_eq!(cpu.reg.get_flag(Flag::C), false);
-    assert_eq!(cpu.reg.get_flag(Flag::P), false);
     assert_eq!(cpu.reg.get_flag(Flag::S), false);
+    assert_eq!(cpu.reg.get_flag(Flag::Z), false);
     assert_eq!(cpu.reg.get_flag(Flag::A), false);
+    assert_eq!(cpu.reg.get_flag(Flag::P), false);
+    assert_eq!(cpu.reg.get_flag(Flag::C), false);
 }
 
 #[test]
@@ -134,11 +134,11 @@ fn test_adc_2() {
     cpu.mem.set(0x0000, 0x89);
     cpu.next();
     assert_eq!(cpu.reg.a, 0x80);
-    assert_eq!(cpu.reg.get_flag(Flag::Z), false);
-    assert_eq!(cpu.reg.get_flag(Flag::C), false);
-    assert_eq!(cpu.reg.get_flag(Flag::P), false);
     assert_eq!(cpu.reg.get_flag(Flag::S), true);
+    assert_eq!(cpu.reg.get_flag(Flag::Z), false);
     assert_eq!(cpu.reg.get_flag(Flag::A), true);
+    assert_eq!(cpu.reg.get_flag(Flag::P), false);
+    assert_eq!(cpu.reg.get_flag(Flag::C), false);
 }
 
 #[test]
@@ -149,11 +149,11 @@ fn test_sub() {
     cpu.mem.set(0x0000, 0x97);
     cpu.next();
     assert_eq!(cpu.reg.a, 0x00);
-    assert_eq!(cpu.reg.get_flag(Flag::C), false);
-    assert_eq!(cpu.reg.get_flag(Flag::A), true);
-    assert_eq!(cpu.reg.get_flag(Flag::Z), true);
-    assert_eq!(cpu.reg.get_flag(Flag::P), true);
     assert_eq!(cpu.reg.get_flag(Flag::S), false);
+    assert_eq!(cpu.reg.get_flag(Flag::Z), true);
+    assert_eq!(cpu.reg.get_flag(Flag::A), true);
+    assert_eq!(cpu.reg.get_flag(Flag::P), true);
+    assert_eq!(cpu.reg.get_flag(Flag::C), false);
 }
 
 #[test]
@@ -166,11 +166,11 @@ fn test_sbb() {
     cpu.mem.set(0x0000, 0x9d);
     cpu.next();
     assert_eq!(cpu.reg.a, 0x01);
+    assert_eq!(cpu.reg.get_flag(Flag::S), false);
     assert_eq!(cpu.reg.get_flag(Flag::Z), false);
-    assert_eq!(cpu.reg.get_flag(Flag::C), false);
     assert_eq!(cpu.reg.get_flag(Flag::A), true);
     assert_eq!(cpu.reg.get_flag(Flag::P), false);
-    assert_eq!(cpu.reg.get_flag(Flag::S), false);
+    assert_eq!(cpu.reg.get_flag(Flag::C), false);
 }
 
 #[test]
@@ -182,8 +182,8 @@ fn test_ana() {
     cpu.mem.set(0x0000, 0xa1);
     cpu.next();
     assert_eq!(cpu.reg.a, 0x0c);
-    assert_eq!(cpu.reg.get_flag(Flag::C), false);
     assert_eq!(cpu.reg.get_flag(Flag::A), false);
+    assert_eq!(cpu.reg.get_flag(Flag::C), false);
 }
 
 #[test]
@@ -239,8 +239,8 @@ fn test_cmp_1() {
     cpu.next();
     assert_eq!(cpu.reg.a, 0x0a);
     assert_eq!(cpu.reg.e, 0x05);
-    assert_eq!(cpu.reg.get_flag(Flag::C), false);
     assert_eq!(cpu.reg.get_flag(Flag::Z), false);
+    assert_eq!(cpu.reg.get_flag(Flag::C), false);
 }
 
 #[test]
@@ -253,8 +253,8 @@ fn test_cmp_2() {
     cpu.next();
     assert_eq!(cpu.reg.a, 0x02);
     assert_eq!(cpu.reg.e, 0x05);
-    assert_eq!(cpu.reg.get_flag(Flag::C), true);
     assert_eq!(cpu.reg.get_flag(Flag::Z), false);
+    assert_eq!(cpu.reg.get_flag(Flag::C), true);
 }
 
 #[test]
@@ -267,8 +267,8 @@ fn test_cmp_3() {
     cpu.next();
     assert_eq!(cpu.reg.a, 0xe5);
     assert_eq!(cpu.reg.e, 0x05);
-    assert_eq!(cpu.reg.get_flag(Flag::C), false);
     assert_eq!(cpu.reg.get_flag(Flag::Z), false);
+    assert_eq!(cpu.reg.get_flag(Flag::C), false);
 }
 
 #[test]
@@ -514,11 +514,11 @@ fn test_adi() {
     cpu.next();
     cpu.next();
     assert_eq!(cpu.reg.a, 0x14);
-    assert_eq!(cpu.reg.get_flag(Flag::C), true);
+    assert_eq!(cpu.reg.get_flag(Flag::S), false);
+    assert_eq!(cpu.reg.get_flag(Flag::Z), false);
     assert_eq!(cpu.reg.get_flag(Flag::A), true);
     assert_eq!(cpu.reg.get_flag(Flag::P), true);
-    assert_eq!(cpu.reg.get_flag(Flag::Z), false);
-    assert_eq!(cpu.reg.get_flag(Flag::S), false);
+    assert_eq!(cpu.reg.get_flag(Flag::C), true);
 }
 
 #[test]
@@ -535,4 +535,22 @@ fn test_aci() {
     cpu.next();
     cpu.next();
     assert_eq!(cpu.reg.a, 0x57);
+}
+
+#[test]
+fn test_sui() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.mem.set(0x0000, 0x3e);
+    cpu.mem.set(0x0001, 0x00);
+    cpu.mem.set(0x0002, 0xd6);
+    cpu.mem.set(0x0003, 0x01);
+    cpu.next();
+    cpu.next();
+    assert_eq!(cpu.reg.a, 0xff);
+    assert_eq!(cpu.reg.get_flag(Flag::S), true);
+    assert_eq!(cpu.reg.get_flag(Flag::Z), false);
+    assert_eq!(cpu.reg.get_flag(Flag::A), false);
+    assert_eq!(cpu.reg.get_flag(Flag::P), true);
+    assert_eq!(cpu.reg.get_flag(Flag::C), true);
 }

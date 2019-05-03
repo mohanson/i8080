@@ -519,6 +519,12 @@ impl Cpu {
                 self.alu_adc(a);
             }
 
+            // SUI Subtract Immediate From Accumulator
+            0xd6 => {
+                let a = self.imm_ds();
+                self.alu_sub(a);
+            }
+
             // 0x01 => {
             //     let a = self.imm_dw(mem);
             //     self.reg.set_bc(a);
@@ -646,10 +652,6 @@ impl Cpu {
             //         self.stack_add(mem, self.reg.pc);
             //         self.reg.pc = a;
             //     }
-            // }
-            // 0xd6 => {
-            //     let a = self.imm_ds(mem);
-            //     self.alu_sub(a);
             // }
             // 0xd7 => {
             //     self.stack_add(mem, self.reg.pc);
