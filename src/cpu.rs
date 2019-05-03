@@ -599,6 +599,9 @@ impl Cpu {
                 self.reg.set_hl(b);
             }
 
+            // PCHL Load Program Counter
+            0xe9 => self.reg.pc = self.reg.get_hl(),
+
             // 0x08 => {}
             // 0x10 => {}
             // 0x18 => {}
@@ -760,7 +763,6 @@ impl Cpu {
             //         self.reg.pc = self.stack_pop(mem);
             //     }
             // }
-            // 0xe9 => self.reg.pc = self.reg.get_hl(),
             // 0xea => {
             //     let a = self.imm_dw(mem);
             //     if !self.reg.get_flag(Flag::P) {

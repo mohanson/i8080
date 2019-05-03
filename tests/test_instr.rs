@@ -691,3 +691,14 @@ fn test_lhld() {
     assert_eq!(cpu.reg.l, 0xff);
     assert_eq!(cpu.reg.h, 0x03);
 }
+
+#[test]
+fn test_pchl() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.h = 0x41;
+    cpu.reg.l = 0x3e;
+    cpu.mem.set(0x0000, 0xe9);
+    cpu.next();
+    assert_eq!(cpu.reg.pc, 0x413e);
+}
