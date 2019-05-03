@@ -639,3 +639,27 @@ fn test_cpi() {
     assert_eq!(cpu.reg.get_flag(Flag::Z), false);
     assert_eq!(cpu.reg.get_flag(Flag::C), false);
 }
+
+#[test]
+fn test_sta() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.a = 0xff;
+    cpu.mem.set(0x0000, 0x32);
+    cpu.mem.set(0x0001, 0xb3);
+    cpu.mem.set(0x0002, 0x05);
+    cpu.next();
+    assert_eq!(cpu.mem.get(0x05b3), 0xff);
+}
+
+#[test]
+fn test_lda() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.mem.set(0x0300, 0xff);
+    cpu.mem.set(0x0000, 0x3a);
+    cpu.mem.set(0x0001, 0x00);
+    cpu.mem.set(0x0002, 0x03);
+    cpu.next();
+    assert_eq!(cpu.reg.a, 0xff);
+}

@@ -555,6 +555,19 @@ impl Cpu {
                 self.alu_cmp(a);
             }
 
+            // STA Store Accumulator Direct
+            0x32 => {
+                let a = self.imm_dw();
+                self.mem.set(a, self.reg.a);
+            }
+
+            // LDA Load Accumulator Direct
+            0x3a => {
+                let a = self.imm_dw();
+                let b = self.mem.get(a);
+                self.reg.a = b;
+            }
+
             // 0x01 => {
             //     let a = self.imm_dw(mem);
             //     self.reg.set_bc(a);
@@ -586,16 +599,7 @@ impl Cpu {
             //     let a = self.imm_dw(mem);
             //     self.reg.sp = a;
             // }
-            // 0x32 => {
-            //     let a = self.imm_dw(mem);
-            //     mem.set(a, self.reg.a);
-            // }
             // 0x38 => {}
-            // 0x3a => {
-            //     let a = self.imm_dw(mem);
-            //     let b = mem.get(a);
-            //     self.reg.a = b;
-            // }
             // 0x76 => self.halted = true,
             // 0xc0 => {
             //     if !self.reg.get_flag(Flag::Z) {
