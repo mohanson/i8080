@@ -494,21 +494,30 @@ impl Cpu {
             // SPHL Load SP From H And L
             0xf9 => self.reg.sp = self.reg.get_hl(),
 
+            // MVI Move Immediate Data
+            0x06 => self.reg.b = self.imm_ds(),
+            0x0e => self.reg.c = self.imm_ds(),
+            0x16 => self.reg.d = self.imm_ds(),
+            0x1e => self.reg.e = self.imm_ds(),
+            0x26 => self.reg.h = self.imm_ds(),
+            0x2e => self.reg.l = self.imm_ds(),
+            0x36 => {
+                let a = self.imm_ds();
+                self.set_m(a);
+            }
+            0x3e => self.reg.a = self.imm_ds(),
+
             // 0x01 => {
             //     let a = self.imm_dw(mem);
             //     self.reg.set_bc(a);
             // }
-            // 0x06 => self.reg.b = self.imm_ds(mem),
             // 0x08 => {}
-            // 0x0e => self.reg.c = self.imm_ds(mem),
             // 0x10 => {}
             // 0x11 => {
             //     let a = self.imm_dw(mem);
             //     self.reg.set_de(a);
             // }
-            // 0x16 => self.reg.d = self.imm_ds(mem),
             // 0x18 => {}
-            // 0x1e => self.reg.e = self.imm_ds(mem),
             // 0x20 => {}
             // 0x21 => {
             //     let a = self.imm_dw(mem);
@@ -518,14 +527,12 @@ impl Cpu {
             //     let a = self.imm_dw(mem);
             //     mem.set_word(a, self.reg.get_hl());
             // }
-            // 0x26 => self.reg.h = self.imm_ds(mem),
             // 0x28 => {}
             // 0x2a => {
             //     let a = self.imm_dw(mem);
             //     let b = mem.get_word(a);
             //     self.reg.set_hl(b);
             // }
-            // 0x2e => self.reg.l = self.imm_ds(mem),
             // 0x30 => {}
             // 0x31 => {
             //     let a = self.imm_dw(mem);
@@ -535,11 +542,6 @@ impl Cpu {
             //     let a = self.imm_dw(mem);
             //     mem.set(a, self.reg.a);
             // }
-            // 0x36 => {
-            //     let a = self.reg.get_hl();
-            //     let b = self.imm_ds(mem);
-            //     mem.set(a, b);
-            // }
             // 0x38 => {}
             // 0x3a => {
             //     let a = self.imm_dw(mem);
@@ -547,7 +549,6 @@ impl Cpu {
             //     self.reg.a = b;
             // }
             // 0x76 => self.halted = true,
-            // 0x3e => self.reg.a = self.imm_ds(mem),
             // 0xc0 => {
             //     if !self.reg.get_flag(Flag::Z) {
             //         ecycle = 6;

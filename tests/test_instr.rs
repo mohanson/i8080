@@ -481,3 +481,34 @@ fn test_sphl() {
     cpu.next();
     assert_eq!(cpu.reg.sp, 0x506c);
 }
+
+#[test]
+fn test_mvi_1() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.mem.set(0x0000, 0x26);
+    cpu.mem.set(0x0001, 0x3c);
+    cpu.next();
+    assert_eq!(cpu.reg.h, 0x3c);
+}
+
+#[test]
+fn test_mvi_2() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.mem.set(0x0000, 0x2e);
+    cpu.mem.set(0x0001, 0xf4);
+    cpu.next();
+    assert_eq!(cpu.reg.l, 0xf4);
+}
+
+#[test]
+fn test_mvi_3() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.set_hl(0x3cf4);
+    cpu.mem.set(0x0000, 0x36);
+    cpu.mem.set(0x0001, 0xff);
+    cpu.next();
+    assert_eq!(cpu.mem.get(0x3cf4), 0xff);
+}
