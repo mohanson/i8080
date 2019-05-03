@@ -437,3 +437,19 @@ fn test_dcx() {
     assert_eq!(cpu.reg.h, 0x97);
     assert_eq!(cpu.reg.l, 0xff);
 }
+
+#[test]
+fn test_xchg() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.h = 0x00;
+    cpu.reg.l = 0xff;
+    cpu.reg.d = 0x33;
+    cpu.reg.e = 0x55;
+    cpu.mem.set(0x0000, 0xeb);
+    cpu.next();
+    assert_eq!(cpu.reg.h, 0x33);
+    assert_eq!(cpu.reg.l, 0x55);
+    assert_eq!(cpu.reg.d, 0x00);
+    assert_eq!(cpu.reg.e, 0xff);
+}

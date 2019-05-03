@@ -1,6 +1,7 @@
 use super::bit;
 use super::memory::Memory;
 use super::register::{Flag, Register};
+use std::mem;
 
 //  0   1   2   3   4   5   6   7   8   9   a   b   c   d   e   f
 const OP_CYCLES: [u32; 256] = [
@@ -476,6 +477,12 @@ impl Cpu {
             0x2b => self.reg.set_hl(self.reg.get_hl().wrapping_sub(1)),
             0x3b => self.reg.sp = self.reg.sp.wrapping_sub(1),
 
+            // XCHG Exchange Registers
+            0xeb => {
+                mem::swap(&mut self.reg.h, &mut self.reg.d);
+                mem::swap(&mut self.reg.l, &mut self.reg.e);
+            }
+
             // 0x01 => {
             //     let a = self.imm_dw(mem);
             //     self.reg.set_bc(a);
@@ -716,11 +723,6 @@ impl Cpu {
             //         ecycle = 6;
             //         self.reg.pc = a;
             //     }
-            // }
-            // 0xeb => {
-            //     use std::mem;
-            //     mem::swap(&mut self.reg.h, &mut self.reg.d);
-            //     mem::swap(&mut self.reg.l, &mut self.reg.e);
             // }
             // 0xec => {
             //     let a = self.imm_dw(mem);
