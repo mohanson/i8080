@@ -507,6 +507,12 @@ impl Cpu {
             }
             0x3e => self.reg.a = self.imm_ds(),
 
+            // ADI Add Immediate To Accumulator
+            0xc6 => {
+                let a = self.imm_ds();
+                self.alu_add(a);
+            }
+
             // 0x01 => {
             //     let a = self.imm_dw(mem);
             //     self.reg.set_bc(a);
@@ -573,10 +579,6 @@ impl Cpu {
             //         self.stack_add(mem, self.reg.pc);
             //         self.reg.pc = a;
             //     }
-            // }
-            // 0xc6 => {
-            //     let a = self.imm_ds(mem);
-            //     self.alu_add(a);
             // }
             // 0xc7 => {
             //     self.stack_add(mem, self.reg.pc);
