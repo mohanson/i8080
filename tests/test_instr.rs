@@ -453,3 +453,20 @@ fn test_xchg() {
     assert_eq!(cpu.reg.d, 0x00);
     assert_eq!(cpu.reg.e, 0xff);
 }
+
+#[test]
+fn test_xthl() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.sp = 0x10ad;
+    cpu.reg.h = 0x0b;
+    cpu.reg.l = 0x3c;
+    cpu.mem.set(0x10ad, 0xf0);
+    cpu.mem.set(0x10ae, 0x0d);
+    cpu.mem.set(0x0000, 0xe3);
+    cpu.next();
+    assert_eq!(cpu.reg.h, 0x0d);
+    assert_eq!(cpu.reg.l, 0xf0);
+    assert_eq!(cpu.mem.get(0x10ad), 0x3c);
+    assert_eq!(cpu.mem.get(0x10ae), 0x0b);
+}

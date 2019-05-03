@@ -483,6 +483,14 @@ impl Cpu {
                 mem::swap(&mut self.reg.l, &mut self.reg.e);
             }
 
+            // XTHL Exchange Stack
+            0xe3 => {
+                let a = self.mem.get_word(self.reg.sp);
+                let b = self.reg.get_hl();
+                self.reg.set_hl(a);
+                self.mem.set_word(self.reg.sp, b)
+            }
+
             // 0x01 => {
             //     let a = self.imm_dw(mem);
             //     self.reg.set_bc(a);
@@ -687,12 +695,6 @@ impl Cpu {
             //         ecycle = 6;
             //         self.reg.pc = self.stack_pop(mem);
             //     }
-            // }
-            // 0xe3 => {
-            //     let hl = self.reg.get_hl();
-            //     let new_hl = self.stack_pop(mem);
-            //     self.stack_add(mem, new_hl);
-            //     self.reg.set_hl(hl);
             // }
             // 0xe4 => {
             //     let a = self.imm_dw(mem);
