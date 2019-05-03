@@ -10,9 +10,6 @@ i8080 is a emulator for Intel 8080 cpu.
 i8080 = { git = "https://github.com/mohanson/i8080" }
 ```
 
-Tested on:
-- rustc 1.34.0
-
 # Tests
 
 The test roms (cpu_tests folder) are taken from [http://altairclone.com/downloads/cpu_tests/](http://altairclone.com/downloads/cpu_tests/).
@@ -21,6 +18,10 @@ The test roms (cpu_tests folder) are taken from [http://altairclone.com/download
 $ python ./scripts/get_cpu_tests.py
 $ cargo tests
 ```
+
+Tested in the following environments:
+
+- Rust 1.34.0
 
 # Licences
 
