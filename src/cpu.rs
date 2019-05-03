@@ -227,6 +227,13 @@ impl Cpu {
 
     pub fn next(&mut self) -> u32 {
         let opcode = self.imm_ds();
+        let opcode = match opcode {
+            0x08 | 0x10 | 0x18 | 0x20 | 0x28 | 0x30 | 0x38 => 0x00,
+            0xcb => 0xc3,
+            0xd9 => 0xc9,
+            0xdd | 0xed | 0xfd => 0xcd,
+            _ => opcode,
+        };
         let mut ecycle = 0;
         match opcode {
             // CARRY BIT INSTRUCTIONS
@@ -631,26 +638,42 @@ impl Cpu {
                 }
             }
 
-            // 0x08 => {}
-            // 0x10 => {}
-            // 0x18 => {}
-            // 0x20 => {}
-            // 0x28 => {}
-            // 0x30 => {}
-            // 0x38 => {}
+            // CALL SUBROUTINE INSTRUCTIONS
+            0xcd | 0xdc | 0xd4 | 0xcc | 0xc4 | 0xfc | 0xf4 | 0xec | 0xe4 => {
+                let a = self.imm_dw();
+                let cond = match opcode {
+                    // CALL Call
+                    0xcd => true,
+                    // CC Call If Carry
+                    0xdc => self.reg.get_flag(Flag::C),
+                    // CNC Call If No Carry
+                    0xd4 => !self.reg.get_flag(Flag::C),
+                    // CZ Call If Zero
+                    0xcc => self.reg.get_flag(Flag::Z),
+                    // CNZ Call If Not Zero
+                    0xc4 => !self.reg.get_flag(Flag::Z),
+                    // CM Call If Minus
+                    0xfc => self.reg.get_flag(Flag::S),
+                    // CP Call If Plus
+                    0xf4 => !self.reg.get_flag(Flag::S),
+                    // CPE Call If Parity Even
+                    0xec => self.reg.get_flag(Flag::P),
+                    // CPO Call If Parity Odd
+                    0xe4 => !self.reg.get_flag(Flag::P),
+                    _ => unimplemented!(),
+                };
+                if cond {
+                    ecycle = 6;
+                    self.stack_add(self.reg.pc + 2);
+                    self.reg.pc = a;
+                }
+            }
+
             // 0x76 => self.halted = true,
             // 0xc0 => {
             //     if !self.reg.get_flag(Flag::Z) {
             //         ecycle = 6;
             //         self.reg.pc = self.stack_pop(mem);
-            //     }
-            // }
-            // 0xc4 => {
-            //     let a = self.imm_dw(mem);
-            //     if !self.reg.get_flag(Flag::Z) {
-            //         ecycle = 6;
-            //         self.stack_add(mem, self.reg.pc);
-            //         self.reg.pc = a;
             //     }
             // }
             // 0xc7 => {
@@ -664,19 +687,6 @@ impl Cpu {
             //     }
             // }
             // 0xc9 => self.reg.pc = self.stack_pop(mem),
-            // 0xcb => self.reg.pc = mem.get_word(self.reg.pc + 1),
-            // 0xcc => {
-            //     let a = self.imm_dw(mem);
-            //     if self.reg.get_flag(Flag::Z) {
-            //         ecycle = 6;
-            //         self.stack_add(mem, self.reg.pc);
-            //         self.reg.pc = a;
-            //     }
-            // }
-            // 0xcd => {
-            //     self.stack_add(mem, self.reg.pc + 2);
-            //     self.reg.pc = mem.get_word(self.reg.pc);
-            // }
             // 0xcf => {
             //     self.stack_add(mem, self.reg.pc);
             //     self.reg.pc = 0x08;
@@ -691,14 +701,6 @@ impl Cpu {
             //     let a = self.imm_ds(mem);
             //     println!("out => port={} data={}", a, self.reg.a);
             // }
-            // 0xd4 => {
-            //     let a = self.imm_dw(mem);
-            //     if !self.reg.get_flag(Flag::C) {
-            //         ecycle = 6;
-            //         self.stack_add(mem, self.reg.pc);
-            //         self.reg.pc = a;
-            //     }
-            // }
             // 0xd7 => {
             //     self.stack_add(mem, self.reg.pc);
             //     self.reg.pc = 0x10;
@@ -709,21 +711,8 @@ impl Cpu {
             //         self.reg.pc = self.stack_pop(mem);
             //     }
             // }
-            // 0xd9 => self.reg.pc = self.stack_pop(mem),
             // 0xdb => {
             //     println!("0xdb input");
-            // }
-            // 0xdc => {
-            //     let a = self.imm_dw(mem);
-            //     if self.reg.get_flag(Flag::C) {
-            //         ecycle = 6;
-            //         self.stack_add(mem, self.reg.pc);
-            //         self.reg.pc = a;
-            //     }
-            // }
-            // 0xdd => {
-            //     self.stack_add(mem, self.reg.pc + 2);
-            //     self.reg.pc = mem.get_word(self.reg.pc);
             // }
             // 0xdf => {
             //     self.stack_add(mem, self.reg.pc);
@@ -753,18 +742,6 @@ impl Cpu {
             //         self.reg.pc = self.stack_pop(mem);
             //     }
             // }
-            // 0xec => {
-            //     let a = self.imm_dw(mem);
-            //     if self.reg.get_flag(Flag::P) {
-            //         ecycle = 6;
-            //         self.stack_add(mem, self.reg.pc);
-            //         self.reg.pc = a;
-            //     }
-            // }
-            // 0xed => {
-            //     self.stack_add(mem, self.reg.pc + 2);
-            //     self.reg.pc = mem.get_word(self.reg.pc);
-            // }
             // 0xef => {
             //     self.stack_add(mem, self.reg.pc);
             //     self.reg.pc = 0x28;
@@ -776,7 +753,6 @@ impl Cpu {
             //     }
             // }
             // 0xf3 => unimplemented!(),
-            // 0xf4 => unimplemented!(),
             // 0xf7 => {
             //     self.stack_add(mem, self.reg.pc);
             //     self.reg.pc = 0x30;
@@ -789,18 +765,6 @@ impl Cpu {
             // }
             // 0xfb => {
             //     self.ei = true;
-            // }
-            // 0xfc => {
-            //     let a = self.imm_dw(mem);
-            //     if self.reg.get_flag(Flag::S) {
-            //         ecycle = 6;
-            //         self.stack_add(mem, self.reg.pc);
-            //         self.reg.pc = a;
-            //     }
-            // }
-            // 0xfd => {
-            //     self.stack_add(mem, self.reg.pc + 2);
-            //     self.reg.pc = mem.get_word(self.reg.pc);
             // }
             // 0xff => {
             //     self.stack_add(mem, self.reg.pc);
