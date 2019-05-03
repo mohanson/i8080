@@ -491,6 +491,9 @@ impl Cpu {
                 self.mem.set_word(self.reg.sp, b)
             }
 
+            // SPHL Load SP From H And L
+            0xf9 => self.reg.sp = self.reg.get_hl(),
+
             // 0x01 => {
             //     let a = self.imm_dw(mem);
             //     self.reg.set_bc(a);
@@ -775,7 +778,6 @@ impl Cpu {
             //         self.reg.pc = self.stack_pop(mem);
             //     }
             // }
-            // 0xf9 => self.reg.sp = self.reg.get_hl(),
             // 0xfa => {
             //     let a = self.imm_dw(mem);
             //     if self.reg.get_flag(Flag::S) {

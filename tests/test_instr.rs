@@ -470,3 +470,14 @@ fn test_xthl() {
     assert_eq!(cpu.mem.get(0x10ad), 0x3c);
     assert_eq!(cpu.mem.get(0x10ae), 0x0b);
 }
+
+#[test]
+fn test_sphl() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.h = 0x50;
+    cpu.reg.l = 0x6c;
+    cpu.mem.set(0x0000, 0xf9);
+    cpu.next();
+    assert_eq!(cpu.reg.sp, 0x506c);
+}
