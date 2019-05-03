@@ -602,6 +602,35 @@ impl Cpu {
             // PCHL Load Program Counter
             0xe9 => self.reg.pc = self.reg.get_hl(),
 
+            // JUMP INSTRUCTIONS
+            0xc3 | 0xda | 0xd2 | 0xca | 0xc2 | 0xfa | 0xf2 | 0xea | 0xe2 => {
+                let a = self.imm_dw();
+                let cond = match opcode {
+                    // JMP JUMP
+                    0xc3 => true,
+                    // JC Jump If Carry
+                    0xda => self.reg.get_flag(Flag::C),
+                    // JNC Jump If No Carry
+                    0xd2 => !self.reg.get_flag(Flag::C),
+                    // JZ Jump If Zero
+                    0xca => self.reg.get_flag(Flag::Z),
+                    // JNZ Jump If Not Zero
+                    0xc2 => !self.reg.get_flag(Flag::Z),
+                    // JM Jump If Minus
+                    0xfa => self.reg.get_flag(Flag::S),
+                    // JP Jump If Positive
+                    0xf2 => !self.reg.get_flag(Flag::S),
+                    // JPE Jump If Parity Even
+                    0xea => self.reg.get_flag(Flag::P),
+                    // JPO Jump If Parity Odd
+                    0xe2 => !self.reg.get_flag(Flag::P),
+                    _ => unimplemented!(),
+                };
+                if cond {
+                    self.reg.pc = a;
+                }
+            }
+
             // 0x08 => {}
             // 0x10 => {}
             // 0x18 => {}
@@ -615,17 +644,6 @@ impl Cpu {
             //         ecycle = 6;
             //         self.reg.pc = self.stack_pop(mem);
             //     }
-            // }
-            // 0xc2 => {
-            //     let a = self.imm_dw(mem);
-            //     if !self.reg.get_flag(Flag::Z) {
-            //         ecycle = 6;
-            //         self.reg.pc = a;
-            //     }
-            // }
-            // 0xc3 => {
-            //     let a = self.imm_dw(mem);
-            //     self.reg.pc = a;
             // }
             // 0xc4 => {
             //     let a = self.imm_dw(mem);
@@ -646,13 +664,6 @@ impl Cpu {
             //     }
             // }
             // 0xc9 => self.reg.pc = self.stack_pop(mem),
-            // 0xca => {
-            //     let a = self.imm_dw(mem);
-            //     if self.reg.get_flag(Flag::Z) {
-            //         ecycle = 6;
-            //         self.reg.pc = a;
-            //     }
-            // }
             // 0xcb => self.reg.pc = mem.get_word(self.reg.pc + 1),
             // 0xcc => {
             //     let a = self.imm_dw(mem);
@@ -674,14 +685,6 @@ impl Cpu {
             //     if !self.reg.get_flag(Flag::C) {
             //         ecycle = 6;
             //         self.reg.pc = self.stack_pop(mem);
-            //     }
-            // }
-
-            // 0xd2 => {
-            //     let a = self.imm_dw(mem);
-            //     if !self.reg.get_flag(Flag::C) {
-            //         ecycle = 6;
-            //         self.reg.pc = a;
             //     }
             // }
             // 0xd3 => {
@@ -707,13 +710,6 @@ impl Cpu {
             //     }
             // }
             // 0xd9 => self.reg.pc = self.stack_pop(mem),
-            // 0xda => {
-            //     let a = self.imm_dw(mem);
-            //     if self.reg.get_flag(Flag::C) {
-            //         ecycle = 6;
-            //         self.reg.pc = a;
-            //     }
-            // }
             // 0xdb => {
             //     println!("0xdb input");
             // }
@@ -739,12 +735,6 @@ impl Cpu {
             //         self.reg.pc = self.stack_pop(mem);
             //     }
             // }
-            // 0xe2 => {
-            //     if !self.reg.get_flag(Flag::P) {
-            //         ecycle = 6;
-            //         self.reg.pc = self.stack_pop(mem);
-            //     }
-            // }
             // 0xe4 => {
             //     let a = self.imm_dw(mem);
             //     if !self.reg.get_flag(Flag::P) {
@@ -761,13 +751,6 @@ impl Cpu {
             //     if !self.reg.get_flag(Flag::P) {
             //         ecycle = 6;
             //         self.reg.pc = self.stack_pop(mem);
-            //     }
-            // }
-            // 0xea => {
-            //     let a = self.imm_dw(mem);
-            //     if !self.reg.get_flag(Flag::P) {
-            //         ecycle = 6;
-            //         self.reg.pc = a;
             //     }
             // }
             // 0xec => {
@@ -792,13 +775,6 @@ impl Cpu {
             //         self.reg.pc = self.stack_pop(mem);
             //     }
             // }
-            // 0xf2 => {
-            //     let a = self.imm_dw(mem);
-            //     if !self.reg.get_flag(Flag::S) {
-            //         ecycle = 6;
-            //         self.reg.pc = a;
-            //     }
-            // }
             // 0xf3 => unimplemented!(),
             // 0xf4 => unimplemented!(),
             // 0xf7 => {
@@ -809,13 +785,6 @@ impl Cpu {
             //     if self.reg.get_flag(Flag::S) {
             //         ecycle = 6;
             //         self.reg.pc = self.stack_pop(mem);
-            //     }
-            // }
-            // 0xfa => {
-            //     let a = self.imm_dw(mem);
-            //     if self.reg.get_flag(Flag::S) {
-            //         ecycle = 6;
-            //         self.reg.pc = a;
             //     }
             // }
             // 0xfb => {
