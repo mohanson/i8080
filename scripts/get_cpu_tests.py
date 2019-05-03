@@ -25,6 +25,14 @@ suffix = [
 saveto = './res/cpu_tests'
 
 
+def wget(url: str, dst: str):
+    resp = requests.get(url, stream=True)
+    with open(dst, 'wb') as f:
+        with contextlib.closing(resp) as r:
+            for data in r.iter_content(chunk_size=8 * 1024):
+                f.write(data)
+
+
 def main():
     if not os.path.exists(saveto):
         print(f'Make dir {saveto}')
@@ -33,11 +41,7 @@ def main():
         src = prefix + e
         dst = os.path.join(saveto, e)
         print(f'Get {src}')
-        resp = requests.get(src, stream=True)
-        with open(dst, 'wb') as f:
-            with contextlib.closing(resp) as r:
-                for data in r.iter_content(chunk_size=8 * 1024):
-                    f.write(data)
+        wget(src, dst)
 
 
 if __name__ == '__main__':
