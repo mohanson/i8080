@@ -34,7 +34,7 @@ impl Cpu {
     pub fn power_up(mem: Box<Memory>) -> Self {
         Self {
             reg: Register::power_up(),
-            mem: mem,
+            mem,
             halted: false,
             ei: false,
         }

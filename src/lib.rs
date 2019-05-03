@@ -1,4 +1,5 @@
 mod bit;
+#[allow(clippy::zero_prefixed_literal, clippy::should_implement_trait)]
 mod cpu;
 mod memory;
 mod register;
