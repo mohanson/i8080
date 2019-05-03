@@ -525,6 +525,12 @@ impl Cpu {
                 self.alu_sub(a);
             }
 
+            // SBI Subtract Immediate from Accumulator With Borrow
+            0xde => {
+                let v = self.imm_ds();
+                self.alu_sbb(v);
+            }
+
             // 0x01 => {
             //     let a = self.imm_dw(mem);
             //     self.reg.set_bc(a);
@@ -685,10 +691,6 @@ impl Cpu {
             // 0xdd => {
             //     self.stack_add(mem, self.reg.pc + 2);
             //     self.reg.pc = mem.get_word(self.reg.pc);
-            // }
-            // 0xde => {
-            //     let v = self.imm_ds(mem);
-            //     self.alu_sbb(v);
             // }
             // 0xdf => {
             //     self.stack_add(mem, self.reg.pc);
