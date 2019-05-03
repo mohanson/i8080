@@ -663,3 +663,31 @@ fn test_lda() {
     cpu.next();
     assert_eq!(cpu.reg.a, 0xff);
 }
+
+#[test]
+fn test_shld() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.h = 0xae;
+    cpu.reg.l = 0x29;
+    cpu.mem.set(0x0000, 0x22);
+    cpu.mem.set(0x0001, 0x0a);
+    cpu.mem.set(0x0002, 0x01);
+    cpu.next();
+    assert_eq!(cpu.mem.get(0x010a), 0x29);
+    assert_eq!(cpu.mem.get(0x010b), 0xae);
+}
+
+#[test]
+fn test_lhld() {
+    let mem = Box::new(help::Memory::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.mem.set(0x025b, 0xff);
+    cpu.mem.set(0x025c, 0x03);
+    cpu.mem.set(0x0000, 0x2a);
+    cpu.mem.set(0x0001, 0x5b);
+    cpu.mem.set(0x0002, 0x02);
+    cpu.next();
+    assert_eq!(cpu.reg.l, 0xff);
+    assert_eq!(cpu.reg.h, 0x03);
+}

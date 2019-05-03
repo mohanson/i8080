@@ -568,6 +568,19 @@ impl Cpu {
                 self.reg.a = b;
             }
 
+            // SHLD Store Hand L Direct
+            0x22 => {
+                let a = self.imm_dw();
+                self.mem.set_word(a, self.reg.get_hl());
+            }
+
+            // LHLD Load HAnd L Direct
+            0x2a => {
+                let a = self.imm_dw();
+                let b = self.mem.get_word(a);
+                self.reg.set_hl(b);
+            }
+
             // 0x01 => {
             //     let a = self.imm_dw(mem);
             //     self.reg.set_bc(a);
@@ -584,16 +597,7 @@ impl Cpu {
             //     let a = self.imm_dw(mem);
             //     self.reg.set_hl(a);
             // }
-            // 0x22 => {
-            //     let a = self.imm_dw(mem);
-            //     mem.set_word(a, self.reg.get_hl());
-            // }
             // 0x28 => {}
-            // 0x2a => {
-            //     let a = self.imm_dw(mem);
-            //     let b = mem.get_word(a);
-            //     self.reg.set_hl(b);
-            // }
             // 0x30 => {}
             // 0x31 => {
             //     let a = self.imm_dw(mem);
