@@ -494,6 +494,24 @@ impl Cpu {
             // SPHL Load SP From H And L
             0xf9 => self.reg.sp = self.reg.get_hl(),
 
+            // LXI Load Immediate Data
+            0x01 => {
+                let a = self.imm_dw();
+                self.reg.set_bc(a);
+            }
+            0x11 => {
+                let a = self.imm_dw();
+                self.reg.set_de(a);
+            }
+            0x21 => {
+                let a = self.imm_dw();
+                self.reg.set_hl(a);
+            }
+            0x31 => {
+                let a = self.imm_dw();
+                self.reg.sp = a;
+            }
+
             // MVI Move Immediate Data
             0x06 => self.reg.b = self.imm_ds(),
             0x0e => self.reg.c = self.imm_ds(),
@@ -581,28 +599,12 @@ impl Cpu {
                 self.reg.set_hl(b);
             }
 
-            // 0x01 => {
-            //     let a = self.imm_dw(mem);
-            //     self.reg.set_bc(a);
-            // }
             // 0x08 => {}
             // 0x10 => {}
-            // 0x11 => {
-            //     let a = self.imm_dw(mem);
-            //     self.reg.set_de(a);
-            // }
             // 0x18 => {}
             // 0x20 => {}
-            // 0x21 => {
-            //     let a = self.imm_dw(mem);
-            //     self.reg.set_hl(a);
-            // }
             // 0x28 => {}
             // 0x30 => {}
-            // 0x31 => {
-            //     let a = self.imm_dw(mem);
-            //     self.reg.sp = a;
-            // }
             // 0x38 => {}
             // 0x76 => self.halted = true,
             // 0xc0 => {
