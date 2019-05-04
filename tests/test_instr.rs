@@ -182,8 +182,6 @@ fn test_ana() {
     cpu.mem.set(0x0000, 0xa1);
     cpu.next();
     assert_eq!(cpu.reg.a, 0x0c);
-    assert_eq!(cpu.reg.get_flag(Flag::A), false);
-    assert_eq!(cpu.reg.get_flag(Flag::C), false);
 }
 
 #[test]

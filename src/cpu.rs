@@ -95,26 +95,23 @@ impl Cpu {
     // The eight-bit hexadecimal number in the accumulator is.adjusted to form tow four bit binary codecd decimal
     // digits by the following two process
     fn alu_daa(&mut self) {
-        let mut r: u8 = self.reg.a;
+        let mut a: u8 = 0;
+        let mut c = self.reg.get_flag(Flag::C);
+        let lsb = self.reg.a & 0x0f;
+        let msb = self.reg.a >> 4;
         // If the least significant four bits of the accumulator represents a number greater than 9, or if the Auxiliary
         // Carry bit is equal to one, the accumulator is incremented by six. Otherwise, no incrementing occurs.
-        if ((r & 0x0f) > 9) || self.reg.get_flag(Flag::A) {
-            r = r.wrapping_add(0x06);
-            self.reg.set_flag(Flag::A, true);
-        } else {
-            self.reg.set_flag(Flag::A, false);
+        if (lsb > 9) || self.reg.get_flag(Flag::A) {
+            a += 0x06;
         }
         // If the most significant four bits of the accumulator now represent a number greater than 9, or if the normal
         // carry bit is equal to one, the most sign ificant four bits of the accumulator are incremented by six.
-        // Otherwise, no incrementing occurs.
-        if (r > 0x9f) || self.reg.get_flag(Flag::C) {
-            r = r.wrapping_add(0x60);
-            self.reg.set_flag(Flag::C, true);
+        if (msb > 9) || self.reg.get_flag(Flag::C) || (msb >= 9 && lsb > 9) {
+            a += 0x60;
+            c = true;
         }
-        self.reg.set_flag(Flag::S, bit::get(r, 7));
-        self.reg.set_flag(Flag::Z, r == 0x00);
-        self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
-        self.reg.a = r;
+        self.alu_add(a);
+        self.reg.set_flag(Flag::C, c);
     }
 
     fn alu_add(&mut self, n: u8) {
@@ -155,7 +152,7 @@ impl Cpu {
         let r = self.reg.a & n;
         self.reg.set_flag(Flag::S, bit::get(r, 7));
         self.reg.set_flag(Flag::Z, r == 0x00);
-        self.reg.set_flag(Flag::A, false);
+        self.reg.set_flag(Flag::A, ((self.reg.a | n) & 0x08) != 0);
         self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
         self.reg.set_flag(Flag::C, false);
         self.reg.a = r;
