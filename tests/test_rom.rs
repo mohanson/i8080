@@ -20,7 +20,6 @@ fn exec_test(path: impl AsRef<Path>) {
     cpu.mem.set(0x0005, 0xc9);
     cpu.reg.pc = 0x0100;
     loop {
-        let prev_pc = cpu.reg.pc;
         cpu.next();
         if cpu.reg.pc == 0x76 {
             panic!("")
@@ -62,4 +61,9 @@ fn test_rom_tst8080() {
 #[test]
 fn test_rom_cputest() {
     exec_test("./res/cpu_tests/CPUTEST.COM");
+}
+
+#[test]
+fn test_rom_8080exm() {
+    exec_test("./res/cpu_tests/8080EXM.COM");
 }
