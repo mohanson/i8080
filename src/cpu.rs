@@ -87,7 +87,7 @@ impl Cpu {
         let r = n.wrapping_sub(1);
         self.reg.set_flag(Flag::S, bit::get(r, 7));
         self.reg.set_flag(Flag::Z, r == 0x00);
-        self.reg.set_flag(Flag::A, n.trailing_zeros() >= 4);
+        self.reg.set_flag(Flag::A, (r & 0x0f) != 0x0f);
         self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
         r
     }

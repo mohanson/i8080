@@ -13,6 +13,7 @@ fn load_test(mem: &mut help::Memory, path: impl AsRef<Path>) {
 }
 
 fn exec_test(path: impl AsRef<Path>) {
+    println!("*******************");
     let mut mem = Box::new(help::Memory::new());
     load_test(&mut mem, path);
     let mut cpu = i8080::Cpu::power_up(mem);
