@@ -9,7 +9,7 @@ fn load_test(mem: &mut help::Memory, path: impl AsRef<Path>) {
     let mut buf = Vec::new();
     file.read_to_end(&mut buf).unwrap();
     mem.data[0x0100..(buf.len() + 0x0100)].clone_from_slice(&buf[..]);
-    println!("Test loaded: {:?} Bytes from {:?}", buf.len(), path.as_ref());
+    println!("Test loaded: {:?}", path.as_ref());
 }
 
 fn exec_test(path: impl AsRef<Path>) {
@@ -44,7 +44,6 @@ fn exec_test(path: impl AsRef<Path>) {
         }
         if cpu.reg.pc == 0x00 {
             println!("");
-            println!("Jump to 0 from 0x{:04x}", prev_pc);
             break;
         }
     }

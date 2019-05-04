@@ -19,6 +19,31 @@ $ python ./scripts/get_cpu_tests.py
 $ cargo tests
 ```
 
+```text
+*******************
+Test loaded: "./res/cpu_tests/8080PRE.COM"
+8080 Preliminary tests complete
+
+*******************
+Test loaded: "./res/cpu_tests/CPUTEST.COM"
+
+DIAGNOSTICS II V1.2 - CPU TEST
+COPYRIGHT (C) 1981 - SUPERSOFT ASSOCIATES
+
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+CPU IS 8080/8085
+BEGIN TIMING TEST
+END TIMING TEST
+CPU TESTS OK
+
+*******************
+Test loaded: "./res/cpu_tests/TST8080.COM"
+MICROCOSM ASSOCIATES 8080/8085 CPU DIAGNOSTIC
+ VERSION 1.0  (C) 1980
+
+ CPU IS OPERATIONAL
+```
+
 Tested in the following environments:
 
 - Rust 1.34.0
