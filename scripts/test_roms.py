@@ -10,7 +10,7 @@ def call(command):
 
 
 def main():
-    call('cargo test test_rom -- --nocapture --test-threads 1')
+    call('cargo run --example test_roms')
 
 
 if __name__ == '__main__':

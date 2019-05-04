@@ -2,9 +2,9 @@ use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
-mod help;
+use i8080::Linear;
 
-fn load_test(mem: &mut help::Memory, path: impl AsRef<Path>) {
+fn load_test(mem: &mut Linear, path: impl AsRef<Path>) {
     let mut file = File::open(path.as_ref()).unwrap();
     let mut buf = Vec::new();
     file.read_to_end(&mut buf).unwrap();
@@ -14,7 +14,7 @@ fn load_test(mem: &mut help::Memory, path: impl AsRef<Path>) {
 
 fn exec_test(path: impl AsRef<Path>) {
     println!("*******************");
-    let mut mem = Box::new(help::Memory::new());
+    let mut mem = Box::new(Linear::new());
     load_test(&mut mem, path);
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.mem.set(0x0005, 0xc9);
@@ -43,27 +43,15 @@ fn exec_test(path: impl AsRef<Path>) {
         }
         if cpu.reg.pc == 0x00 {
             println!("");
+            println!("");
             break;
         }
     }
 }
 
-#[test]
-fn test_rom_8080pre() {
+fn main() {
     exec_test("./res/cpu_tests/8080PRE.COM");
-}
-
-#[test]
-fn test_rom_tst8080() {
     exec_test("./res/cpu_tests/TST8080.COM");
-}
-
-#[test]
-fn test_rom_cputest() {
     exec_test("./res/cpu_tests/CPUTEST.COM");
-}
-
-#[test]
-fn test_rom_8080exm() {
     exec_test("./res/cpu_tests/8080EXM.COM");
 }

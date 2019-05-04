@@ -1,10 +1,8 @@
-use i8080::Flag;
-
-mod help;
+use i8080::{Flag, Linear};
 
 #[test]
 fn test_inr() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.c = 0x99;
     cpu.mem.set(0x0000, 0x0c);
@@ -14,7 +12,7 @@ fn test_inr() {
 
 #[test]
 fn test_dcr() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.h = 0x3a;
     cpu.reg.l = 0x7c;
@@ -26,7 +24,7 @@ fn test_dcr() {
 
 #[test]
 fn test_cma() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0x51;
     cpu.mem.set(0x0000, 0x2f);
@@ -36,7 +34,7 @@ fn test_cma() {
 
 #[test]
 fn test_daa() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0x9b;
     cpu.mem.set(0x0000, 0x27);
@@ -48,7 +46,7 @@ fn test_daa() {
 
 #[test]
 fn test_mov() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0xff;
     cpu.reg.h = 0x2b;
@@ -60,7 +58,7 @@ fn test_mov() {
 
 #[test]
 fn test_stax() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0xff;
     cpu.reg.b = 0x3f;
@@ -72,7 +70,7 @@ fn test_stax() {
 
 #[test]
 fn test_ldax() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.d = 0x93;
     cpu.reg.e = 0x8b;
@@ -84,7 +82,7 @@ fn test_ldax() {
 
 #[test]
 fn test_add_1() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.d = 0x2e;
     cpu.reg.a = 0x6c;
@@ -100,7 +98,7 @@ fn test_add_1() {
 
 #[test]
 fn test_add_2() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0x01;
     cpu.mem.set(0x0000, 0x87);
@@ -110,7 +108,7 @@ fn test_add_2() {
 
 #[test]
 fn test_adc_1() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0x42;
     cpu.reg.c = 0x3d;
@@ -126,7 +124,7 @@ fn test_adc_1() {
 
 #[test]
 fn test_adc_2() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0x42;
     cpu.reg.c = 0x3d;
@@ -143,7 +141,7 @@ fn test_adc_2() {
 
 #[test]
 fn test_sub() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0x3e;
     cpu.mem.set(0x0000, 0x97);
@@ -158,7 +156,7 @@ fn test_sub() {
 
 #[test]
 fn test_sbb() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.l = 0x02;
     cpu.reg.a = 0x04;
@@ -175,7 +173,7 @@ fn test_sbb() {
 
 #[test]
 fn test_ana() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0xfc;
     cpu.reg.c = 0x0f;
@@ -186,7 +184,7 @@ fn test_ana() {
 
 #[test]
 fn test_xra_1() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0x0a;
     cpu.reg.b = 0x0b;
@@ -204,7 +202,7 @@ fn test_xra_1() {
 
 #[test]
 fn test_xra_2() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0xff;
     cpu.reg.b = 0b1010_1010;
@@ -218,7 +216,7 @@ fn test_xra_3() {}
 
 #[test]
 fn test_ora() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0x33;
     cpu.reg.c = 0x0f;
@@ -229,7 +227,7 @@ fn test_ora() {
 
 #[test]
 fn test_cmp_1() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0x0a;
     cpu.reg.e = 0x05;
@@ -243,7 +241,7 @@ fn test_cmp_1() {
 
 #[test]
 fn test_cmp_2() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0x02;
     cpu.reg.e = 0x05;
@@ -257,7 +255,7 @@ fn test_cmp_2() {
 
 #[test]
 fn test_cmp_3() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0xe5;
     cpu.reg.e = 0x05;
@@ -271,7 +269,7 @@ fn test_cmp_3() {
 
 #[test]
 fn test_rlc() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0xf2;
     cpu.mem.set(0x0000, 0x07);
@@ -282,7 +280,7 @@ fn test_rlc() {
 
 #[test]
 fn test_rrc() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0xf2;
     cpu.mem.set(0x0000, 0x0f);
@@ -293,7 +291,7 @@ fn test_rrc() {
 
 #[test]
 fn test_ral() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0xb5;
     cpu.mem.set(0x0000, 0x17);
@@ -304,7 +302,7 @@ fn test_ral() {
 
 #[test]
 fn test_rar() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0x6a;
     cpu.reg.set_flag(Flag::C, true);
@@ -316,7 +314,7 @@ fn test_rar() {
 
 #[test]
 fn test_stack_push_1() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.d = 0x8f;
     cpu.reg.e = 0x9d;
@@ -330,7 +328,7 @@ fn test_stack_push_1() {
 
 #[test]
 fn test_stack_push_2() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0x1f;
     cpu.reg.sp = 0x502a;
@@ -346,7 +344,7 @@ fn test_stack_push_2() {
 
 #[test]
 fn test_stack_pop_1() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.mem.set(0x1239, 0x3d);
     cpu.mem.set(0x123a, 0x93);
@@ -360,7 +358,7 @@ fn test_stack_pop_1() {
 
 #[test]
 fn test_stack_pop_2() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.mem.set(0x2c00, 0xc3);
     cpu.mem.set(0x2c01, 0xff);
@@ -378,7 +376,7 @@ fn test_stack_pop_2() {
 
 #[test]
 fn test_dad_1() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.b = 0x33;
     cpu.reg.c = 0x9f;
@@ -393,7 +391,7 @@ fn test_dad_1() {
 
 #[test]
 fn test_dad_2() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.h = 0xa1;
     cpu.reg.l = 0x7b;
@@ -404,7 +402,7 @@ fn test_dad_2() {
 
 #[test]
 fn test_inx_1() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.d = 0x38;
     cpu.reg.e = 0xff;
@@ -416,7 +414,7 @@ fn test_inx_1() {
 
 #[test]
 fn test_inx_2() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.sp = 0xffff;
     cpu.mem.set(0x0000, 0x33);
@@ -426,7 +424,7 @@ fn test_inx_2() {
 
 #[test]
 fn test_dcx() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.h = 0x98;
     cpu.reg.l = 0x00;
@@ -438,7 +436,7 @@ fn test_dcx() {
 
 #[test]
 fn test_xchg() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.h = 0x00;
     cpu.reg.l = 0xff;
@@ -454,7 +452,7 @@ fn test_xchg() {
 
 #[test]
 fn test_xthl() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.sp = 0x10ad;
     cpu.reg.h = 0x0b;
@@ -471,7 +469,7 @@ fn test_xthl() {
 
 #[test]
 fn test_sphl() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.h = 0x50;
     cpu.reg.l = 0x6c;
@@ -482,7 +480,7 @@ fn test_sphl() {
 
 #[test]
 fn test_mvi() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.mem.set(0x0000, 0x26);
     cpu.mem.set(0x0001, 0x3c);
@@ -500,7 +498,7 @@ fn test_mvi() {
 
 #[test]
 fn test_adi() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.mem.set(0x0000, 0x3e);
     cpu.mem.set(0x0001, 0x14);
@@ -521,7 +519,7 @@ fn test_adi() {
 
 #[test]
 fn test_aci() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.mem.set(0x0000, 0x3e);
     cpu.mem.set(0x0001, 0x56);
@@ -537,7 +535,7 @@ fn test_aci() {
 
 #[test]
 fn test_sui() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.mem.set(0x0000, 0x3e);
     cpu.mem.set(0x0001, 0x00);
@@ -555,7 +553,7 @@ fn test_sui() {
 
 #[test]
 fn test_sbi_1() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.mem.set(0x0000, 0xde);
     cpu.mem.set(0x0001, 0x01);
@@ -570,7 +568,7 @@ fn test_sbi_1() {
 
 #[test]
 fn test_sbi_2() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.set_flag(Flag::C, true);
     cpu.mem.set(0x0000, 0xde);
@@ -586,7 +584,7 @@ fn test_sbi_2() {
 
 #[test]
 fn test_ani() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.c = 0x3a;
     cpu.mem.set(0x0000, 0x79);
@@ -599,7 +597,7 @@ fn test_ani() {
 
 #[test]
 fn test_xri() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0x3b;
     cpu.mem.set(0x0000, 0xee);
@@ -611,7 +609,7 @@ fn test_xri() {
 
 #[test]
 fn test_ori() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.c = 0xb5;
     cpu.mem.set(0x0000, 0x79);
@@ -625,7 +623,7 @@ fn test_ori() {
 
 #[test]
 fn test_cpi() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.mem.set(0x0000, 0x3e);
     cpu.mem.set(0x0001, 0x4a);
@@ -640,7 +638,7 @@ fn test_cpi() {
 
 #[test]
 fn test_sta() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.a = 0xff;
     cpu.mem.set(0x0000, 0x32);
@@ -652,7 +650,7 @@ fn test_sta() {
 
 #[test]
 fn test_lda() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.mem.set(0x0300, 0xff);
     cpu.mem.set(0x0000, 0x3a);
@@ -664,7 +662,7 @@ fn test_lda() {
 
 #[test]
 fn test_shld() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.h = 0xae;
     cpu.reg.l = 0x29;
@@ -678,7 +676,7 @@ fn test_shld() {
 
 #[test]
 fn test_lhld() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.mem.set(0x025b, 0xff);
     cpu.mem.set(0x025c, 0x03);
@@ -692,7 +690,7 @@ fn test_lhld() {
 
 #[test]
 fn test_pchl() {
-    let mem = Box::new(help::Memory::new());
+    let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);
     cpu.reg.h = 0x41;
     cpu.reg.l = 0x3e;
