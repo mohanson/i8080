@@ -236,7 +236,7 @@ impl Cpu {
         log::debug!(
             "{} PC={:04x} SP={:04x} A={:02x} F={:02x} B={:02x} C={:02x} D={:02x} E={:02x} H={:02x} L={:02x}",
             asm::asm(opcode),
-            self.reg.pc - 1,
+            self.reg.pc.wrapping_sub(1),
             self.reg.sp,
             self.reg.a,
             self.reg.f,
