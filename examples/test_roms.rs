@@ -14,9 +14,9 @@ fn load_test(mem: &mut Linear, path: impl AsRef<Path>) {
 
 fn exec_test(path: impl AsRef<Path>) {
     println!("*******************");
-    let mut mem = Box::new(Linear::new());
+    let mut mem = Linear::new();
     load_test(&mut mem, path);
-    let mut cpu = i8080::Cpu::power_up(mem);
+    let mut cpu = i8080::Cpu::power_up(Box::new(mem));
     cpu.mem.set(0x0005, 0xc9);
     cpu.reg.pc = 0x0100;
     loop {
