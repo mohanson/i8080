@@ -87,7 +87,7 @@ impl Cpu {
         let r = n.wrapping_sub(1);
         self.reg.set_flag(Flag::S, bit::get(r, 7));
         self.reg.set_flag(Flag::Z, r == 0x00);
-        self.reg.set_flag(Flag::A, n.trailing_zeros() >= 4);
+        self.reg.set_flag(Flag::A, (r & 0x0f) != 0x0f);
         self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
         r
     }
@@ -95,26 +95,23 @@ impl Cpu {
     // The eight-bit hexadecimal number in the accumulator is.adjusted to form tow four bit binary codecd decimal
     // digits by the following two process
     fn alu_daa(&mut self) {
-        let mut r: u8 = self.reg.a;
+        let mut a: u8 = 0;
+        let mut c = self.reg.get_flag(Flag::C);
+        let lsb = self.reg.a & 0x0f;
+        let msb = self.reg.a >> 4;
         // If the least significant four bits of the accumulator represents a number greater than 9, or if the Auxiliary
         // Carry bit is equal to one, the accumulator is incremented by six. Otherwise, no incrementing occurs.
-        if ((r & 0x0f) > 9) || self.reg.get_flag(Flag::A) {
-            r = r.wrapping_add(0x06);
-            self.reg.set_flag(Flag::A, true);
-        } else {
-            self.reg.set_flag(Flag::A, false);
+        if (lsb > 9) || self.reg.get_flag(Flag::A) {
+            a += 0x06;
         }
         // If the most significant four bits of the accumulator now represent a number greater than 9, or if the normal
         // carry bit is equal to one, the most sign ificant four bits of the accumulator are incremented by six.
-        // Otherwise, no incrementing occurs.
-        if (r > 0x9f) || self.reg.get_flag(Flag::C) {
-            r = r.wrapping_add(0x60);
-            self.reg.set_flag(Flag::C, true);
+        if (msb > 9) || self.reg.get_flag(Flag::C) || (msb >= 9 && lsb > 9) {
+            a += 0x60;
+            c = true;
         }
-        self.reg.set_flag(Flag::S, bit::get(r, 7));
-        self.reg.set_flag(Flag::Z, r == 0x00);
-        self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
-        self.reg.a = r;
+        self.alu_add(a);
+        self.reg.set_flag(Flag::C, c);
     }
 
     fn alu_add(&mut self, n: u8) {
@@ -130,8 +127,15 @@ impl Cpu {
 
     fn alu_adc(&mut self, n: u8) {
         let c = u8::from(self.reg.get_flag(Flag::C));
-        let n = n.wrapping_add(c);
-        self.alu_add(n);
+        let a = self.reg.a;
+        let r = a.wrapping_add(n).wrapping_add(c);
+        self.reg.set_flag(Flag::S, bit::get(r, 7));
+        self.reg.set_flag(Flag::Z, r == 0x00);
+        self.reg.set_flag(Flag::A, (a & 0x0f) + (n & 0x0f) + c > 0x0f);
+        self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
+        self.reg
+            .set_flag(Flag::C, u16::from(a) + u16::from(n) + u16::from(c) > 0xff);
+        self.reg.a = r;
     }
 
     fn alu_sub(&mut self, n: u8) {
@@ -139,7 +143,7 @@ impl Cpu {
         let r = a.wrapping_sub(n);
         self.reg.set_flag(Flag::S, bit::get(r, 7));
         self.reg.set_flag(Flag::Z, r == 0x00);
-        self.reg.set_flag(Flag::A, (a & 0x0f) + (!n & 0x0f) + 1 > 0x0f);
+        self.reg.set_flag(Flag::A, (a as i8 & 0x0f) - (n as i8 & 0x0f) >= 0x00);
         self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
         self.reg.set_flag(Flag::C, u16::from(a) < u16::from(n));
         self.reg.a = r;
@@ -147,15 +151,22 @@ impl Cpu {
 
     fn alu_sbb(&mut self, n: u8) {
         let c = u8::from(self.reg.get_flag(Flag::C));
-        let n = n.wrapping_add(c);
-        self.alu_sub(n)
+        let a = self.reg.a;
+        let r = a.wrapping_sub(n).wrapping_sub(c);
+        self.reg.set_flag(Flag::S, bit::get(r, 7));
+        self.reg.set_flag(Flag::Z, r == 0x00);
+        self.reg
+            .set_flag(Flag::A, (a as i8 & 0x0f) - (n as i8 & 0x0f) - (c as i8) >= 0x00);
+        self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
+        self.reg.set_flag(Flag::C, u16::from(a) < u16::from(n) + u16::from(c));
+        self.reg.a = r;
     }
 
     fn alu_ana(&mut self, n: u8) {
         let r = self.reg.a & n;
         self.reg.set_flag(Flag::S, bit::get(r, 7));
         self.reg.set_flag(Flag::Z, r == 0x00);
-        self.reg.set_flag(Flag::A, false);
+        self.reg.set_flag(Flag::A, ((self.reg.a | n) & 0x08) != 0);
         self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
         self.reg.set_flag(Flag::C, false);
         self.reg.a = r;
@@ -239,7 +250,7 @@ impl Cpu {
         log::debug!(
             "{} PC={:04x} SP={:04x} A={:02x} F={:02x} B={:02x} C={:02x} D={:02x} E={:02x} H={:02x} L={:02x}",
             asm::asm(opcode),
-            self.reg.pc - 1,
+            self.reg.pc.wrapping_sub(1),
             self.reg.sp,
             self.reg.a,
             self.reg.f,

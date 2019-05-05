@@ -2,23 +2,22 @@ use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
-mod help;
+use i8080::Linear;
 
-fn load_test(mem: &mut help::Memory, path: impl AsRef<Path>) {
+fn load_test(mem: &mut Linear, path: impl AsRef<Path>) {
     let mut file = File::open(path.as_ref()).unwrap();
     let mut buf = Vec::new();
     file.read_to_end(&mut buf).unwrap();
     mem.data[0x0100..(buf.len() + 0x0100)].clone_from_slice(&buf[..]);
-    println!("Test loaded: {:?} Bytes from {:?}", buf.len(), path.as_ref());
+    println!("Test loaded: {:?}", path.as_ref());
 }
 
-#[test]
-fn test_rom_8080pre() {
-    let mut mem = Box::new(help::Memory::new());
-    load_test(&mut mem, "./res/cpu_tests/8080PRE.COM");
-    let mut cpu = i8080::Cpu::power_up(mem);
+fn exec_test(path: impl AsRef<Path>) {
+    println!("*******************");
+    let mut mem = Linear::new();
+    load_test(&mut mem, path);
+    let mut cpu = i8080::Cpu::power_up(Box::new(mem));
     cpu.mem.set(0x0005, 0xc9);
-    cpu.reg.pc = 0xf800;
     cpu.reg.pc = 0x0100;
     loop {
         cpu.next();
@@ -31,7 +30,6 @@ fn test_rom_8080pre() {
                 loop {
                     let c = cpu.mem.get(a);
                     if c as char == '$' {
-                        println!("");
                         break;
                     } else {
                         a += 1;
@@ -44,7 +42,16 @@ fn test_rom_8080pre() {
             }
         }
         if cpu.reg.pc == 0x00 {
+            println!("");
+            println!("");
             break;
         }
     }
+}
+
+fn main() {
+    exec_test("./res/cpu_tests/8080PRE.COM");
+    exec_test("./res/cpu_tests/TST8080.COM");
+    exec_test("./res/cpu_tests/CPUTEST.COM");
+    exec_test("./res/cpu_tests/8080EXM.COM");
 }
