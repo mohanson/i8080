@@ -13,6 +13,7 @@ pub trait Memory {
     }
 }
 
+#[derive(Default)]
 pub struct Linear {
     pub data: Vec<u8>,
 }
