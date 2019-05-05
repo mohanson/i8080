@@ -133,7 +133,8 @@ impl Cpu {
         self.reg.set_flag(Flag::Z, r == 0x00);
         self.reg.set_flag(Flag::A, (a & 0x0f) + (n & 0x0f) + c > 0x0f);
         self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
-        self.reg.set_flag(Flag::C, u16::from(a) + u16::from(n) + 0x01 > 0xff);
+        self.reg
+            .set_flag(Flag::C, u16::from(a) + u16::from(n) + u16::from(c) > 0xff);
         self.reg.a = r;
     }
 
