@@ -16,7 +16,7 @@ The test roms (cpu_tests folder) are taken from [http://altairclone.com/download
 
 ```sh
 $ python ./scripts/get_cpu_tests.py
-$ cargo run --example test_roms
+$ cargo run --release --example test_roms
 ```
 
 ```text
