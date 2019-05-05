@@ -140,6 +140,18 @@ fn test_adc_2() {
 }
 
 #[test]
+fn test_adc_3() {
+    let mem = Box::new(Linear::new());
+    let mut cpu = i8080::Cpu::power_up(mem);
+    cpu.reg.a = 0x3f;
+    cpu.reg.f = 0xd3;
+    cpu.mem.set(0x0000, 0x8f);
+    cpu.next();
+    assert_eq!(cpu.reg.a, 0x7f);
+    assert_eq!(cpu.reg.f, 0x12);
+}
+
+#[test]
 fn test_sub() {
     let mem = Box::new(Linear::new());
     let mut cpu = i8080::Cpu::power_up(mem);

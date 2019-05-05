@@ -127,8 +127,14 @@ impl Cpu {
 
     fn alu_adc(&mut self, n: u8) {
         let c = u8::from(self.reg.get_flag(Flag::C));
-        let n = n.wrapping_add(c);
-        self.alu_add(n);
+        let a = self.reg.a;
+        let r = a.wrapping_add(n).wrapping_add(c);
+        self.reg.set_flag(Flag::S, bit::get(r, 7));
+        self.reg.set_flag(Flag::Z, r == 0x00);
+        self.reg.set_flag(Flag::A, (a & 0x0f) + (n & 0x0f) + c > 0x0f);
+        self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
+        self.reg.set_flag(Flag::C, u16::from(a) + u16::from(n) + 0x01 > 0xff);
+        self.reg.a = r;
     }
 
     fn alu_sub(&mut self, n: u8) {
