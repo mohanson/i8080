@@ -150,14 +150,8 @@ impl Cpu {
 
     fn alu_sbb(&mut self, n: u8) {
         let c = u8::from(self.reg.get_flag(Flag::C));
-        let a = self.reg.a;
-        let r = a.wrapping_sub(n).wrapping_sub(c);
-        self.reg.set_flag(Flag::S, bit::get(r, 7));
-        self.reg.set_flag(Flag::Z, r == 0x00);
-        self.reg.set_flag(Flag::A, (a & 0x0f) + (!n & 0x0f) + (1 - c) > 0x0f);
-        self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
-        self.reg.set_flag(Flag::C, u16::from(a) < u16::from(n) + u16::from(c));
-        self.reg.a = r;
+        let n = n.wrapping_add(c);
+        self.alu_sub(n);
     }
 
     fn alu_ana(&mut self, n: u8) {
