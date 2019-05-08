@@ -2,6 +2,7 @@ use super::asm;
 use super::bit;
 use super::memory::Memory;
 use super::register::{Flag, Register};
+use rog::debugln;
 use std::mem;
 
 //  0   1   2   3   4   5   6   7   8   9   a   b   c   d   e   f
@@ -247,7 +248,7 @@ impl Cpu {
             _ => opcode,
         };
 
-        rog::debugln!(
+        debugln!(
             "{} PC={:04x} SP={:04x} A={:02x} F={:02x} B={:02x} C={:02x} D={:02x} E={:02x} H={:02x} L={:02x}",
             asm::asm(opcode),
             self.reg.pc.wrapping_sub(1),
