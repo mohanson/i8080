@@ -28,6 +28,7 @@ const OP_CYCLES: [u32; 256] = [
 pub struct Cpu {
     pub reg: Register,
     pub mem: Box<Memory>,
+    pub device: [u8; 0xff],
     halted: bool,
     ei: bool,
 }
@@ -37,6 +38,7 @@ impl Cpu {
         Self {
             reg: Register::power_up(),
             mem,
+            device: [0x00; 0xff],
             halted: false,
             ei: false,
         }
@@ -738,11 +740,12 @@ impl Cpu {
 
             // INPUT/OUTPUT INSTRUCTIONS
             0xdb => {
-                println!("0xdb input");
+                let port = self.imm_ds();
+                self.reg.a = self.device[port as usize];
             }
             0xd3 => {
-                let a = self.imm_ds();
-                println!("out => port={} data={}", a, self.reg.a);
+                let port = self.imm_ds();
+                self.device[port as usize] = self.reg.a;
             }
 
             // HLT HALT INSTRUCTION
