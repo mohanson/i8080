@@ -2,6 +2,7 @@ use super::asm;
 use super::bit;
 use super::memory::Memory;
 use super::register::{Flag, Register};
+use rog::debugln;
 use std::mem;
 
 //  0   1   2   3   4   5   6   7   8   9   a   b   c   d   e   f
@@ -27,6 +28,7 @@ const OP_CYCLES: [u32; 256] = [
 pub struct Cpu {
     pub reg: Register,
     pub mem: Box<Memory>,
+    pub device: [u8; 0xff],
     halted: bool,
     ei: bool,
 }
@@ -36,6 +38,7 @@ impl Cpu {
         Self {
             reg: Register::power_up(),
             mem,
+            device: [0x00; 0xff],
             halted: false,
             ei: false,
         }
@@ -247,7 +250,7 @@ impl Cpu {
             _ => opcode,
         };
 
-        rog::debugln!(
+        debugln!(
             "{} PC={:04x} SP={:04x} A={:02x} F={:02x} B={:02x} C={:02x} D={:02x} E={:02x} H={:02x} L={:02x}",
             asm::asm(opcode),
             self.reg.pc.wrapping_sub(1),
@@ -737,11 +740,12 @@ impl Cpu {
 
             // INPUT/OUTPUT INSTRUCTIONS
             0xdb => {
-                println!("0xdb input");
+                let port = self.imm_ds();
+                self.reg.a = self.device[port as usize];
             }
             0xd3 => {
-                let a = self.imm_ds();
-                println!("out => port={} data={}", a, self.reg.a);
+                let port = self.imm_ds();
+                self.device[port as usize] = self.reg.a;
             }
 
             // HLT HALT INSTRUCTION

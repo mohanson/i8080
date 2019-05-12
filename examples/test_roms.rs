@@ -18,6 +18,7 @@ fn exec_test(path: impl AsRef<Path>) {
     load_test(&mut mem, path);
     let mut cpu = i8080::Cpu::power_up(Box::new(mem));
     cpu.mem.set(0x0005, 0xc9);
+    // Because tests used the pseudo instruction ORG 0x0100
     cpu.reg.pc = 0x0100;
     loop {
         cpu.next();
