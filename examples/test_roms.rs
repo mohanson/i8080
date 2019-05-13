@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
-use i8080::Linear;
+use i8080::{Cpu, Linear};
 
 fn load_test(mem: &mut Linear, path: impl AsRef<Path>) {
     let mut file = File::open(path.as_ref()).unwrap();
@@ -16,7 +16,7 @@ fn exec_test(path: impl AsRef<Path>) {
     println!("*******************");
     let mut mem = Linear::new();
     load_test(&mut mem, path);
-    let mut cpu = i8080::Cpu::power_up(Box::new(mem));
+    let mut cpu = Cpu::power_up(Box::new(mem));
     cpu.mem.set(0x0005, 0xc9);
     // Because tests used the pseudo instruction ORG 0x0100
     cpu.reg.pc = 0x0100;
