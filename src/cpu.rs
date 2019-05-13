@@ -3,7 +3,9 @@ use super::bit;
 use super::memory::Memory;
 use super::register::{Flag, Register};
 use rog::debugln;
+use std::cell::RefCell;
 use std::mem;
+use std::rc::Rc;
 
 //  0   1   2   3   4   5   6   7   8   9   a   b   c   d   e   f
 const OP_CYCLES: [u32; 256] = [
@@ -27,14 +29,14 @@ const OP_CYCLES: [u32; 256] = [
 
 pub struct Cpu {
     pub reg: Register,
-    pub mem: Box<Memory>,
+    pub mem: Rc<RefCell<Memory>>,
     pub device: [u8; 0xff],
     halted: bool,
     ei: bool,
 }
 
 impl Cpu {
-    pub fn power_up(mem: Box<Memory>) -> Self {
+    pub fn power_up(mem: Rc<RefCell<Memory>>) -> Self {
         Self {
             reg: Register::power_up(),
             mem,
@@ -45,34 +47,34 @@ impl Cpu {
     }
 
     fn imm_ds(&mut self) -> u8 {
-        let v = self.mem.get(self.reg.pc);
+        let v = self.mem.borrow().get(self.reg.pc);
         self.reg.pc += 1;
         v
     }
 
     fn imm_dw(&mut self) -> u16 {
-        let v = self.mem.get_word(self.reg.pc);
+        let v = self.mem.borrow().get_word(self.reg.pc);
         self.reg.pc += 2;
         v
     }
 
     fn get_m(&self) -> u8 {
         let a = self.reg.get_hl();
-        self.mem.get(a)
+        self.mem.borrow().get(a)
     }
 
     fn set_m(&mut self, v: u8) {
         let a = self.reg.get_hl();
-        self.mem.set(a, v)
+        self.mem.borrow_mut().set(a, v)
     }
 
     fn stack_add(&mut self, v: u16) {
         self.reg.sp = self.reg.sp.wrapping_sub(2);
-        self.mem.set_word(self.reg.sp, v);
+        self.mem.borrow_mut().set_word(self.reg.sp, v);
     }
 
     fn stack_pop(&mut self) -> u16 {
-        let r = self.mem.get_word(self.reg.sp);
+        let r = self.mem.borrow().get_word(self.reg.sp);
         self.reg.sp = self.reg.sp.wrapping_add(2);
         r
     }
@@ -374,12 +376,12 @@ impl Cpu {
             0x7f => {}
 
             // STAX Store Accumulator
-            0x02 => self.mem.set(self.reg.get_bc(), self.reg.a),
-            0x12 => self.mem.set(self.reg.get_de(), self.reg.a),
+            0x02 => self.mem.borrow_mut().set(self.reg.get_bc(), self.reg.a),
+            0x12 => self.mem.borrow_mut().set(self.reg.get_de(), self.reg.a),
 
             // LDAX Load Accumulator
-            0x0a => self.reg.a = self.mem.get(self.reg.get_bc()),
-            0x1a => self.reg.a = self.mem.get(self.reg.get_de()),
+            0x0a => self.reg.a = self.mem.borrow().get(self.reg.get_bc()),
+            0x1a => self.reg.a = self.mem.borrow().get(self.reg.get_de()),
 
             // ADD ADD Register or Memory To Accumulator
             0x80 => self.alu_add(self.reg.b),
@@ -523,10 +525,10 @@ impl Cpu {
 
             // XTHL Exchange Stack
             0xe3 => {
-                let a = self.mem.get_word(self.reg.sp);
+                let a = self.mem.borrow().get_word(self.reg.sp);
                 let b = self.reg.get_hl();
                 self.reg.set_hl(a);
-                self.mem.set_word(self.reg.sp, b)
+                self.mem.borrow_mut().set_word(self.reg.sp, b)
             }
 
             // SPHL Load SP From H And L
@@ -614,26 +616,26 @@ impl Cpu {
             // STA Store Accumulator Direct
             0x32 => {
                 let a = self.imm_dw();
-                self.mem.set(a, self.reg.a);
+                self.mem.borrow_mut().set(a, self.reg.a);
             }
 
             // LDA Load Accumulator Direct
             0x3a => {
                 let a = self.imm_dw();
-                let b = self.mem.get(a);
+                let b = self.mem.borrow().get(a);
                 self.reg.a = b;
             }
 
             // SHLD Store Hand L Direct
             0x22 => {
                 let a = self.imm_dw();
-                self.mem.set_word(a, self.reg.get_hl());
+                self.mem.borrow_mut().set_word(a, self.reg.get_hl());
             }
 
             // LHLD Load HAnd L Direct
             0x2a => {
                 let a = self.imm_dw();
-                let b = self.mem.get_word(a);
+                let b = self.mem.borrow().get_word(a);
                 self.reg.set_hl(b);
             }
 
