@@ -38,7 +38,7 @@ pub struct Cpu {
     pub mem: Rc<RefCell<Memory>>,
     pub device: [u8; 0xff],
     halted: bool,
-    ei: bool,
+    inte: bool,
 }
 
 impl Cpu {
@@ -48,7 +48,7 @@ impl Cpu {
             mem,
             device: [0x00; 0xff],
             halted: false,
-            ei: false,
+            inte: false,
         }
     }
 
@@ -103,7 +103,7 @@ impl Cpu {
         r
     }
 
-    // The eight-bit hexadecimal number in the accumulator is.adjusted to form tow four bit binary codecd decimal
+    // The integht-bit hexadecimal number in the accumulator is.adjusted to form tow four bit binary codecd decimal
     // digits by the following two process
     fn alu_daa(&mut self) {
         let mut a: u8 = 0;
@@ -743,8 +743,8 @@ impl Cpu {
             }
 
             // INTERRUPT FLIP-FLOP INSTRUCTIONS
-            0xfb => self.ei = true,
-            0xf3 => self.ei = false,
+            0xfb => self.inte = true,
+            0xf3 => self.inte = false,
 
             // INPUT/OUTPUT INSTRUCTIONS
             0xdb => {
