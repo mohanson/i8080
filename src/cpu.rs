@@ -6,6 +6,12 @@ use rog::debugln;
 use std::cell::RefCell;
 use std::mem;
 use std::rc::Rc;
+use std::thread;
+use std::time;
+
+pub const CLOCK_FREQUENCY: u32 = 2_000_000;
+pub const STEP_TIME: u32 = 16;
+pub const STEP_CYCLES: u32 = (STEP_TIME as f64 / (1000 as f64 / CLOCK_FREQUENCY as f64)) as u32;
 
 //  0   1   2   3   4   5   6   7   8   9   a   b   c   d   e   f
 const OP_CYCLES: [u32; 256] = [
@@ -756,5 +762,13 @@ impl Cpu {
         };
 
         OP_CYCLES[opcode as usize] + ecycle
+    }
+
+    pub fn step(&mut self) {
+        let mut sum = 0;
+        while sum < STEP_CYCLES {
+            sum += self.next();
+        }
+        thread::sleep(time::Duration::from_millis(u64::from(STEP_TIME)));
     }
 }
