@@ -778,6 +778,7 @@ impl Cpu {
             self.step_cycles = self.step_cycles - STEP_CYCLES;
             let d = time::SystemTime::now().duration_since(self.step_zero).unwrap();
             let s = u64::from(STEP_TIME.saturating_sub(d.as_millis() as u32));
+            debugln!("CPU: sleep {} millis", s);
             thread::sleep(time::Duration::from_millis(s));
             self.step_zero = self
                 .step_zero
