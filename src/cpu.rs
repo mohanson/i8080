@@ -6,10 +6,12 @@ use rog::debugln;
 use std::cell::RefCell;
 use std::mem;
 use std::rc::Rc;
+use std::thread;
+use std::time;
 
-// pub const CLOCK_FREQUENCY: u32 = 2_000_000;
-// pub const STEP_TIME: u32 = 16;
-// pub const STEP_CYCLES: u32 = (STEP_TIME as f64 / (1000 as f64 / CLOCK_FREQUENCY as f64)) as u32;
+pub const CLOCK_FREQUENCY: u32 = 2_000_000;
+pub const STEP_TIME: u32 = 16;
+pub const STEP_CYCLES: u32 = (STEP_TIME as f64 / (1000 as f64 / CLOCK_FREQUENCY as f64)) as u32;
 
 //  0   1   2   3   4   5   6   7   8   9   a   b   c   d   e   f
 const OP_CYCLES: [u32; 256] = [
@@ -36,7 +38,10 @@ pub struct Cpu {
     pub mem: Rc<RefCell<Memory>>,
     // pub device: [u8; 0xff],
     pub halted: bool,
-    inte: bool,
+    pub inte: bool,
+
+    step_cycles: u32,
+    step_zero: time::SystemTime,
 }
 
 impl Cpu {
@@ -47,6 +52,8 @@ impl Cpu {
             // device: [0x00; 0xff],
             halted: false,
             inte: false,
+            step_cycles: 0,
+            step_zero: time::SystemTime::now(),
         }
     }
 
@@ -248,7 +255,7 @@ impl Cpu {
 
     pub fn next(&mut self) -> u32 {
         if self.halted {
-            return 0
+            return 0;
         }
         let opcode = self.imm_ds();
         let opcode = match opcode {
@@ -766,14 +773,15 @@ impl Cpu {
         OP_CYCLES[opcode as usize] + ecycle
     }
 
-    // pub fn step(&mut self) {
-    //     let tic = time::SystemTime::now();
-    //     let mut sum = 0;
-    //     while sum < STEP_CYCLES {
-    //         sum += self.next();
-    //     }
-    //     let toc = time::SystemTime::now().duration_since(tic).unwrap();
-    //     let d = u64::from(STEP_TIME.saturating_sub(toc.as_millis() as u32));
-    //     thread::sleep(time::Duration::from_millis(d));
-    // }
+    pub fn step(&mut self) -> u32 {
+        if self.step_cycles > STEP_CYCLES {
+            self.step_cycles = self.step_cycles - STEP_CYCLES;
+            let quit = time::SystemTime::now();
+            let d = quit.duration_since(self.step_zero).unwrap();
+            let d = u64::from(STEP_TIME.saturating_sub(d.as_millis() as u32));
+            thread::sleep(time::Duration::from_millis(d));
+        }
+        self.step_cycles += 1;
+        self.next()
+    }
 }

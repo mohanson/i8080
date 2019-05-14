@@ -24,7 +24,7 @@ fn exec_test(path: impl AsRef<Path>) {
     cpu.reg.pc = 0x0100;
     loop {
         if cpu.halted {
-            break
+            break;
         }
         cpu.next();
         if cpu.reg.pc == 0x05 {
