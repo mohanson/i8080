@@ -781,7 +781,8 @@ impl Cpu {
             let d = u64::from(STEP_TIME.saturating_sub(d.as_millis() as u32));
             thread::sleep(time::Duration::from_millis(d));
         }
-        self.step_cycles += 1;
-        self.next()
+        let cycles = self.next();
+        self.step_cycles += cycles;
+        cycles
     }
 }
