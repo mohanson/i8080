@@ -776,10 +776,13 @@ impl Cpu {
     pub fn step(&mut self) -> u32 {
         if self.step_cycles > STEP_CYCLES {
             self.step_cycles = self.step_cycles - STEP_CYCLES;
-            let quit = time::SystemTime::now();
-            let d = quit.duration_since(self.step_zero).unwrap();
-            let d = u64::from(STEP_TIME.saturating_sub(d.as_millis() as u32));
-            thread::sleep(time::Duration::from_millis(d));
+            let d = time::SystemTime::now().duration_since(self.step_zero).unwrap();
+            let s = u64::from(STEP_TIME.saturating_sub(d.as_millis() as u32));
+            thread::sleep(time::Duration::from_millis(s));
+            self.step_zero = self
+                .step_zero
+                .checked_add(time::Duration::from_millis(u64::from(STEP_TIME)))
+                .unwrap();
         }
         let cycles = self.next();
         self.step_cycles += cycles;
