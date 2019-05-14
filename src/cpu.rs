@@ -6,12 +6,10 @@ use rog::debugln;
 use std::cell::RefCell;
 use std::mem;
 use std::rc::Rc;
-use std::thread;
-use std::time;
 
-pub const CLOCK_FREQUENCY: u32 = 2_000_000;
-pub const STEP_TIME: u32 = 16;
-pub const STEP_CYCLES: u32 = (STEP_TIME as f64 / (1000 as f64 / CLOCK_FREQUENCY as f64)) as u32;
+// pub const CLOCK_FREQUENCY: u32 = 2_000_000;
+// pub const STEP_TIME: u32 = 16;
+// pub const STEP_CYCLES: u32 = (STEP_TIME as f64 / (1000 as f64 / CLOCK_FREQUENCY as f64)) as u32;
 
 //  0   1   2   3   4   5   6   7   8   9   a   b   c   d   e   f
 const OP_CYCLES: [u32; 256] = [
@@ -27,17 +25,17 @@ const OP_CYCLES: [u32; 256] = [
     04, 04, 04, 04, 04, 04, 07, 04, 04, 04, 04, 04, 04, 04, 07, 04, // 9
     04, 04, 04, 04, 04, 04, 07, 04, 04, 04, 04, 04, 04, 04, 07, 04, // a
     04, 04, 04, 04, 04, 04, 07, 04, 04, 04, 04, 04, 04, 04, 07, 04, // b
-    00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // c
-    00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // d
-    00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // e
-    00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // f
+    05, 10, 10, 10, 11, 11, 07, 11, 05, 10, 10, 10, 11, 17, 07, 11, // c
+    05, 10, 10, 10, 11, 11, 07, 11, 05, 10, 10, 10, 11, 17, 07, 11, // d
+    05, 10, 10, 18, 11, 11, 07, 11, 05, 05, 10, 05, 11, 17, 07, 11, // e
+    05, 10, 10, 04, 11, 11, 07, 11, 05, 05, 10, 04, 11, 17, 07, 11, // f
 ];
 
 pub struct Cpu {
     pub reg: Register,
     pub mem: Rc<RefCell<Memory>>,
-    pub device: [u8; 0xff],
-    halted: bool,
+    // pub device: [u8; 0xff],
+    pub halted: bool,
     inte: bool,
 }
 
@@ -46,7 +44,7 @@ impl Cpu {
         Self {
             reg: Register::power_up(),
             mem,
-            device: [0x00; 0xff],
+            // device: [0x00; 0xff],
             halted: false,
             inte: false,
         }
@@ -249,6 +247,9 @@ impl Cpu {
     }
 
     pub fn next(&mut self) -> u32 {
+        if self.halted {
+            return 0
+        }
         let opcode = self.imm_ds();
         let opcode = match opcode {
             0x08 | 0x10 | 0x18 | 0x20 | 0x28 | 0x30 | 0x38 => 0x00,
@@ -732,6 +733,7 @@ impl Cpu {
                     _ => unimplemented!(),
                 };
                 if cond {
+                    ecycle = 6;
                     self.reg.pc = self.stack_pop()
                 }
             }
@@ -748,12 +750,12 @@ impl Cpu {
 
             // INPUT/OUTPUT INSTRUCTIONS
             0xdb => {
-                let port = self.imm_ds();
-                self.reg.a = self.device[port as usize];
+                // let port = self.imm_ds();
+                // self.reg.a = self.device[port as usize];
             }
             0xd3 => {
-                let port = self.imm_ds();
-                self.device[port as usize] = self.reg.a;
+                // let port = self.imm_ds();
+                // self.device[port as usize] = self.reg.a;
             }
 
             // HLT HALT INSTRUCTION
@@ -764,11 +766,14 @@ impl Cpu {
         OP_CYCLES[opcode as usize] + ecycle
     }
 
-    pub fn step(&mut self) {
-        let mut sum = 0;
-        while sum < STEP_CYCLES {
-            sum += self.next();
-        }
-        thread::sleep(time::Duration::from_millis(u64::from(STEP_TIME)));
-    }
+    // pub fn step(&mut self) {
+    //     let tic = time::SystemTime::now();
+    //     let mut sum = 0;
+    //     while sum < STEP_CYCLES {
+    //         sum += self.next();
+    //     }
+    //     let toc = time::SystemTime::now().duration_since(tic).unwrap();
+    //     let d = u64::from(STEP_TIME.saturating_sub(toc.as_millis() as u32));
+    //     thread::sleep(time::Duration::from_millis(d));
+    // }
 }

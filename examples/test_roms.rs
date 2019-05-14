@@ -23,10 +23,10 @@ fn exec_test(path: impl AsRef<Path>) {
     // Because tests used the pseudo instruction ORG 0x0100
     cpu.reg.pc = 0x0100;
     loop {
-        cpu.next();
-        if cpu.reg.pc == 0x76 {
-            panic!("")
+        if cpu.halted {
+            break
         }
+        cpu.next();
         if cpu.reg.pc == 0x05 {
             if cpu.reg.c == 0x09 {
                 let mut a = cpu.reg.get_de();
