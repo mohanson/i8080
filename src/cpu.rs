@@ -789,4 +789,13 @@ impl Cpu {
         self.step_cycles += cycles;
         cycles
     }
+
+    pub fn inte_handle(&mut self, addr: u16) {
+        if self.inte {
+            self.inte = false;
+            self.stack_add(self.reg.pc);
+            self.reg.pc = addr;
+            self.step_cycles += OP_CYCLES[0xcd];
+        }
+    }
 }
