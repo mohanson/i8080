@@ -756,13 +756,12 @@ impl Cpu {
             0xf3 => self.inte = false,
 
             // INPUT/OUTPUT INSTRUCTIONS
+            // Note: You need to implement this instr yourself
             0xdb => {
-                let port = self.imm_ds();
-                self.reg.a = self.device[port as usize];
+                let _ = self.imm_ds();
             }
             0xd3 => {
-                let port = self.imm_ds();
-                self.device[port as usize] = self.reg.a;
+                let _ = self.imm_ds();
             }
 
             // HLT HALT INSTRUCTION
@@ -775,7 +774,7 @@ impl Cpu {
 
     pub fn step(&mut self) -> u32 {
         if self.step_cycles > STEP_CYCLES {
-            self.step_cycles = self.step_cycles - STEP_CYCLES;
+            self.step_cycles -= STEP_CYCLES;
             let d = time::SystemTime::now().duration_since(self.step_zero).unwrap();
             let s = u64::from(STEP_TIME.saturating_sub(d.as_millis() as u32));
             debugln!("CPU: sleep {} millis", s);
