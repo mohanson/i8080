@@ -3,7 +3,15 @@ use super::bit;
 use super::memory::Memory;
 use super::register::{Flag, Register};
 use rog::debugln;
+use std::cell::RefCell;
 use std::mem;
+use std::rc::Rc;
+use std::thread;
+use std::time;
+
+pub const CLOCK_FREQUENCY: u32 = 2_000_000;
+pub const STEP_TIME: u32 = 16;
+pub const STEP_CYCLES: u32 = (STEP_TIME as f64 / (1000 as f64 / CLOCK_FREQUENCY as f64)) as u32;
 
 //  0   1   2   3   4   5   6   7   8   9   a   b   c   d   e   f
 const OP_CYCLES: [u32; 256] = [
@@ -19,60 +27,65 @@ const OP_CYCLES: [u32; 256] = [
     04, 04, 04, 04, 04, 04, 07, 04, 04, 04, 04, 04, 04, 04, 07, 04, // 9
     04, 04, 04, 04, 04, 04, 07, 04, 04, 04, 04, 04, 04, 04, 07, 04, // a
     04, 04, 04, 04, 04, 04, 07, 04, 04, 04, 04, 04, 04, 04, 07, 04, // b
-    00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // c
-    00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // d
-    00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // e
-    00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, // f
+    05, 10, 10, 10, 11, 11, 07, 11, 05, 10, 10, 10, 11, 17, 07, 11, // c
+    05, 10, 10, 10, 11, 11, 07, 11, 05, 10, 10, 10, 11, 17, 07, 11, // d
+    05, 10, 10, 18, 11, 11, 07, 11, 05, 05, 10, 05, 11, 17, 07, 11, // e
+    05, 10, 10, 04, 11, 11, 07, 11, 05, 05, 10, 04, 11, 17, 07, 11, // f
 ];
 
 pub struct Cpu {
     pub reg: Register,
-    pub mem: Box<Memory>,
+    pub mem: Rc<RefCell<Memory>>,
     pub device: [u8; 0xff],
-    halted: bool,
-    ei: bool,
+    pub halted: bool,
+    pub inte: bool,
+
+    step_cycles: u32,
+    step_zero: time::SystemTime,
 }
 
 impl Cpu {
-    pub fn power_up(mem: Box<Memory>) -> Self {
+    pub fn power_up(mem: Rc<RefCell<Memory>>) -> Self {
         Self {
             reg: Register::power_up(),
             mem,
             device: [0x00; 0xff],
             halted: false,
-            ei: false,
+            inte: false,
+            step_cycles: 0,
+            step_zero: time::SystemTime::now(),
         }
     }
 
     fn imm_ds(&mut self) -> u8 {
-        let v = self.mem.get(self.reg.pc);
+        let v = self.mem.borrow().get(self.reg.pc);
         self.reg.pc += 1;
         v
     }
 
     fn imm_dw(&mut self) -> u16 {
-        let v = self.mem.get_word(self.reg.pc);
+        let v = self.mem.borrow().get_word(self.reg.pc);
         self.reg.pc += 2;
         v
     }
 
     fn get_m(&self) -> u8 {
         let a = self.reg.get_hl();
-        self.mem.get(a)
+        self.mem.borrow().get(a)
     }
 
     fn set_m(&mut self, v: u8) {
         let a = self.reg.get_hl();
-        self.mem.set(a, v)
+        self.mem.borrow_mut().set(a, v)
     }
 
     fn stack_add(&mut self, v: u16) {
         self.reg.sp = self.reg.sp.wrapping_sub(2);
-        self.mem.set_word(self.reg.sp, v);
+        self.mem.borrow_mut().set_word(self.reg.sp, v);
     }
 
     fn stack_pop(&mut self) -> u16 {
-        let r = self.mem.get_word(self.reg.sp);
+        let r = self.mem.borrow().get_word(self.reg.sp);
         self.reg.sp = self.reg.sp.wrapping_add(2);
         r
     }
@@ -95,7 +108,7 @@ impl Cpu {
         r
     }
 
-    // The eight-bit hexadecimal number in the accumulator is.adjusted to form tow four bit binary codecd decimal
+    // The integht-bit hexadecimal number in the accumulator is.adjusted to form tow four bit binary codecd decimal
     // digits by the following two process
     fn alu_daa(&mut self) {
         let mut a: u8 = 0;
@@ -241,6 +254,9 @@ impl Cpu {
     }
 
     pub fn next(&mut self) -> u32 {
+        if self.halted {
+            return 0;
+        }
         let opcode = self.imm_ds();
         let opcode = match opcode {
             0x08 | 0x10 | 0x18 | 0x20 | 0x28 | 0x30 | 0x38 => 0x00,
@@ -374,12 +390,12 @@ impl Cpu {
             0x7f => {}
 
             // STAX Store Accumulator
-            0x02 => self.mem.set(self.reg.get_bc(), self.reg.a),
-            0x12 => self.mem.set(self.reg.get_de(), self.reg.a),
+            0x02 => self.mem.borrow_mut().set(self.reg.get_bc(), self.reg.a),
+            0x12 => self.mem.borrow_mut().set(self.reg.get_de(), self.reg.a),
 
             // LDAX Load Accumulator
-            0x0a => self.reg.a = self.mem.get(self.reg.get_bc()),
-            0x1a => self.reg.a = self.mem.get(self.reg.get_de()),
+            0x0a => self.reg.a = self.mem.borrow().get(self.reg.get_bc()),
+            0x1a => self.reg.a = self.mem.borrow().get(self.reg.get_de()),
 
             // ADD ADD Register or Memory To Accumulator
             0x80 => self.alu_add(self.reg.b),
@@ -523,10 +539,10 @@ impl Cpu {
 
             // XTHL Exchange Stack
             0xe3 => {
-                let a = self.mem.get_word(self.reg.sp);
+                let a = self.mem.borrow().get_word(self.reg.sp);
                 let b = self.reg.get_hl();
                 self.reg.set_hl(a);
-                self.mem.set_word(self.reg.sp, b)
+                self.mem.borrow_mut().set_word(self.reg.sp, b)
             }
 
             // SPHL Load SP From H And L
@@ -614,26 +630,26 @@ impl Cpu {
             // STA Store Accumulator Direct
             0x32 => {
                 let a = self.imm_dw();
-                self.mem.set(a, self.reg.a);
+                self.mem.borrow_mut().set(a, self.reg.a);
             }
 
             // LDA Load Accumulator Direct
             0x3a => {
                 let a = self.imm_dw();
-                let b = self.mem.get(a);
+                let b = self.mem.borrow().get(a);
                 self.reg.a = b;
             }
 
             // SHLD Store Hand L Direct
             0x22 => {
                 let a = self.imm_dw();
-                self.mem.set_word(a, self.reg.get_hl());
+                self.mem.borrow_mut().set_word(a, self.reg.get_hl());
             }
 
             // LHLD Load HAnd L Direct
             0x2a => {
                 let a = self.imm_dw();
-                let b = self.mem.get_word(a);
+                let b = self.mem.borrow().get_word(a);
                 self.reg.set_hl(b);
             }
 
@@ -724,6 +740,7 @@ impl Cpu {
                     _ => unimplemented!(),
                 };
                 if cond {
+                    ecycle = 6;
                     self.reg.pc = self.stack_pop()
                 }
             }
@@ -735,17 +752,16 @@ impl Cpu {
             }
 
             // INTERRUPT FLIP-FLOP INSTRUCTIONS
-            0xfb => self.ei = true,
-            0xf3 => self.ei = false,
+            0xfb => self.inte = true,
+            0xf3 => self.inte = false,
 
             // INPUT/OUTPUT INSTRUCTIONS
+            // Note: You need to implement this instr yourself
             0xdb => {
-                let port = self.imm_ds();
-                self.reg.a = self.device[port as usize];
+                let _ = self.imm_ds();
             }
             0xd3 => {
-                let port = self.imm_ds();
-                self.device[port as usize] = self.reg.a;
+                let _ = self.imm_ds();
             }
 
             // HLT HALT INSTRUCTION
@@ -754,5 +770,31 @@ impl Cpu {
         };
 
         OP_CYCLES[opcode as usize] + ecycle
+    }
+
+    pub fn step(&mut self) -> u32 {
+        if self.step_cycles > STEP_CYCLES {
+            self.step_cycles -= STEP_CYCLES;
+            let d = time::SystemTime::now().duration_since(self.step_zero).unwrap();
+            let s = u64::from(STEP_TIME.saturating_sub(d.as_millis() as u32));
+            debugln!("CPU: sleep {} millis", s);
+            thread::sleep(time::Duration::from_millis(s));
+            self.step_zero = self
+                .step_zero
+                .checked_add(time::Duration::from_millis(u64::from(STEP_TIME)))
+                .unwrap();
+        }
+        let cycles = self.next();
+        self.step_cycles += cycles;
+        cycles
+    }
+
+    pub fn inte_handle(&mut self, addr: u16) {
+        if self.inte {
+            self.inte = false;
+            self.stack_add(self.reg.pc);
+            self.reg.pc = addr;
+            self.step_cycles += OP_CYCLES[0xcd];
+        }
     }
 }

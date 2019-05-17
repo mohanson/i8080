@@ -1,35 +1,37 @@
+use std::cell::RefCell;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
+use std::rc::Rc;
 
-use i8080::Linear;
+use i8080::{Cpu, Linear, Memory};
 
-fn load_test(mem: &mut Linear, path: impl AsRef<Path>) {
+fn load_test(mem: Rc<RefCell<Linear>>, path: impl AsRef<Path>) {
     let mut file = File::open(path.as_ref()).unwrap();
     let mut buf = Vec::new();
     file.read_to_end(&mut buf).unwrap();
-    mem.data[0x0100..(buf.len() + 0x0100)].clone_from_slice(&buf[..]);
+    mem.borrow_mut().data[0x0100..(buf.len() + 0x0100)].clone_from_slice(&buf[..]);
     println!("Test loaded: {:?}", path.as_ref());
 }
 
 fn exec_test(path: impl AsRef<Path>) {
     println!("*******************");
-    let mut mem = Linear::new();
-    load_test(&mut mem, path);
-    let mut cpu = i8080::Cpu::power_up(Box::new(mem));
-    cpu.mem.set(0x0005, 0xc9);
+    let mem = Rc::new(RefCell::new(Linear::new()));
+    load_test(mem.clone(), path);
+    let mut cpu = Cpu::power_up(mem.clone());
+    mem.borrow_mut().set(0x0005, 0xc9);
     // Because tests used the pseudo instruction ORG 0x0100
     cpu.reg.pc = 0x0100;
     loop {
-        cpu.next();
-        if cpu.reg.pc == 0x76 {
-            panic!("")
+        if cpu.halted {
+            break;
         }
+        cpu.next();
         if cpu.reg.pc == 0x05 {
             if cpu.reg.c == 0x09 {
                 let mut a = cpu.reg.get_de();
                 loop {
-                    let c = cpu.mem.get(a);
+                    let c = mem.borrow().get(a);
                     if c as char == '$' {
                         break;
                     } else {
