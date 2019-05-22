@@ -36,7 +36,6 @@ const OP_CYCLES: [u32; 256] = [
 pub struct Cpu {
     pub reg: Register,
     pub mem: Rc<RefCell<Memory>>,
-    pub device: [u8; 0xff],
     pub halted: bool,
     pub inte: bool,
 
@@ -49,7 +48,6 @@ impl Cpu {
         Self {
             reg: Register::power_up(),
             mem,
-            device: [0x00; 0xff],
             halted: false,
             inte: false,
             step_cycles: 0,
