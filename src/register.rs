@@ -86,8 +86,9 @@ impl Register {
 
 impl Register {
     pub fn power_up() -> Self {
-        let mut r = Self::default();
-        r.f = 0b0000_0010;
-        r
+        Self {
+            f: 0b0000_0010,
+            ..Default::default()
+        }
     }
 }
