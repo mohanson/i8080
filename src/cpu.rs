@@ -147,8 +147,7 @@ impl Cpu {
         self.reg.set_flag(Flag::Z, r == 0x00);
         self.reg.set_flag(Flag::A, (a & 0x0f) + (n & 0x0f) + c > 0x0f);
         self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
-        self.reg
-            .set_flag(Flag::C, u16::from(a) + u16::from(n) + u16::from(c) > 0xff);
+        self.reg.set_flag(Flag::C, u16::from(a) + u16::from(n) + u16::from(c) > 0xff);
         self.reg.a = r;
     }
 
@@ -169,8 +168,7 @@ impl Cpu {
         let r = a.wrapping_sub(n).wrapping_sub(c);
         self.reg.set_flag(Flag::S, bit::get(r, 7));
         self.reg.set_flag(Flag::Z, r == 0x00);
-        self.reg
-            .set_flag(Flag::A, (a as i8 & 0x0f) - (n as i8 & 0x0f) - (c as i8) >= 0x00);
+        self.reg.set_flag(Flag::A, (a as i8 & 0x0f) - (n as i8 & 0x0f) - (c as i8) >= 0x00);
         self.reg.set_flag(Flag::P, r.count_ones() & 0x01 == 0x00);
         self.reg.set_flag(Flag::C, u16::from(a) < u16::from(n) + u16::from(c));
         self.reg.a = r;
@@ -235,11 +233,7 @@ impl Cpu {
 
     fn alu_rar(&mut self) {
         let c = bit::get(self.reg.a, 0);
-        let r = if self.reg.get_flag(Flag::C) {
-            0x80 | (self.reg.a >> 1)
-        } else {
-            self.reg.a >> 1
-        };
+        let r = if self.reg.get_flag(Flag::C) { 0x80 | (self.reg.a >> 1) } else { self.reg.a >> 1 };
         self.reg.set_flag(Flag::C, c);
         self.reg.a = r;
     }
@@ -777,10 +771,7 @@ impl Cpu {
             let s = u64::from(STEP_TIME.saturating_sub(d.as_millis() as u32));
             debugln!("CPU: sleep {} millis", s);
             thread::sleep(time::Duration::from_millis(s));
-            self.step_zero = self
-                .step_zero
-                .checked_add(time::Duration::from_millis(u64::from(STEP_TIME)))
-                .unwrap();
+            self.step_zero = self.step_zero.checked_add(time::Duration::from_millis(u64::from(STEP_TIME))).unwrap();
         }
         let cycles = self.next();
         self.step_cycles += cycles;

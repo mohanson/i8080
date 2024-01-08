@@ -86,9 +86,6 @@ impl Register {
 
 impl Register {
     pub fn power_up() -> Self {
-        Self {
-            f: 0b0000_0010,
-            ..Default::default()
-        }
+        Self { f: 0b0000_0010, ..Default::default() }
     }
 }
